@@ -32,6 +32,19 @@ def create_player(map, start_x=5, start_y=5):
 # Create the player at the specified position
 create_player(map, 5, 5)  # Creates entire drill at (5,5)
 
+# Rock design data
+from rock_design import ROCK_DESIGN  # Import rock design data
+
+def create_rock(map, start_x=25, start_y=5):
+    rock_parts = []
+    for char, rel_x, rel_y in ROCK_DESIGN:
+        if char != ' ':  # Skip empty spaces
+            obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+            rock_parts.append(obj)
+    return rock_parts
+
+# Usage:
+boulder = create_rock(map, 25, 3)  # Creates rock at (10,3)
 
 frame.add(map, 1,0)
 text.add(map,10,3)
