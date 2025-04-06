@@ -1,6 +1,8 @@
 import scrap_engine as se
 import time, os, threading, sys
 from pynput import keyboard
+from pynput.keyboard import Listener, Key
+from threading import Lock
 
 os.system("")
 width, height = os.get_terminal_size()
@@ -15,8 +17,11 @@ frame = se.Frame(height-2, width-1,
                  vertical_chars=["|", "|"], state="solid")
 frame.add(map, 1,0)
 
+#GLOBAL VARIABLES----------------------------------------------------------------
 #Rersources
 iron = -1
+iron_lock = Lock()
+#--------------------------------------------------------------------------------
 
 # Create text
 text=se.Text(f'Iron: {iron}', float)
@@ -58,27 +63,54 @@ smap.set(smap.x+1, smap.y)
 direction = 1  # X direction changer
 y_change = 1
 
+# Keyboard control
+space_pressed = False
+def on_press(key):
+    global iron, space_pressed, drill_state
+    if key == Key.space and not space_pressed:
+        space_pressed = True
+        with iron_lock:
+            iron += 1
+        for _ in range(2):
+            # Update the drill state to show it's working
+            drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
+            drill.rechar(drill_state)  # Update the drill object with the new state
+            smap.remap()
+            smap.show()
+            time.sleep(0.05)
 
+def on_release(key):
+    global space_pressed
+    if key == Key.space:
+        space_pressed = False
+
+# Start keyboard listener in a daemon thread
+def start_listener():
+    with Listener(on_press=on_press, on_release=on_release) as listener:
+        listener.join()
+
+keyboard_thread = threading.Thread(target=start_listener, daemon=True)
+keyboard_thread.start()
 
 # Global control variable
 running = True
 
-#Resource IRON updater
-def iron_counter():
+#Resource IRON updater automically
+'''def iron_counter():
     global iron
     iron_cd = 1
     while running:
-        iron += 1
+        #iron += 1
         text.rechar(f"Iron: {iron}")
         smap.remap()
         smap.show()
-        time.sleep(iron_cd)  # Update every 1 second
+        time.sleep(iron_cd)  # Update every 1 second'''
 
-iron_thread = threading.Thread(target=iron_counter, daemon=True)
-iron_thread.start()
+#iron_thread = threading.Thread(target=iron_counter, daemon=True)
+#iron_thread.start()
 
-#Drill animation
-def drill_animation():
+#Drill animation automatic
+'''def drill_animation():
     drill_state = '►'
     while running:
         drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
@@ -89,15 +121,18 @@ def drill_animation():
         smap.show()
 
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
-drill_animation_thread.start()
+drill_animation_thread.start()'''
 
+# Main game loop
+running = True
 try:
-    while running:  # Main game loop
+    while running:
+        with iron_lock:
+            text.rechar(f'Iron: {iron}')
         smap.remap()
         smap.show()
         time.sleep(0.1)
 except KeyboardInterrupt:
-    running = False  # Signal threads to stop
-    iron_thread.join(timeout=0.5)  # Wait for threads to finish
-    drill_animation_thread.join(timeout=0.5)
+    running = False
+    listener.stop()
 
