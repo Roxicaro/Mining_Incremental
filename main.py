@@ -1,5 +1,7 @@
 import scrap_engine as se
 import time, os, threading, sys
+import pynput
+from pynput import keyboard
 import random
 
 os.system("")
@@ -10,22 +12,30 @@ g=0.015
 map=se.Map(height, 1000, " ")
 smap=se.Submap(map, 0, 0)
 
-block=se.Object("#")
-ground=se.Square("#", map.width, 5)
-player=se.Object(f'O')
-frame = se.Frame(height-1, width-5, 
+frame = se.Frame(height-2, width-1, 
                  corner_chars=["+", "+", "+", "+"], 
                  horizontal_chars=["-", "-"], 
                  vertical_chars=["|", "|"], state="solid")
-h=se.Text(f'Width: {width}\nHeight: {height}', float)
+text=se.Text(f'Width: {width}\nHeight: {height}', float)
 
-player.add(map, round(smap.width/2), round(map.height/2))
+
+# Player design data
+from player_design import PLAYER_DESIGN  # Import player design data
+
+def create_player(map, start_x=5, start_y=5):
+    player_parts = []
+    for char, rel_x, rel_y in PLAYER_DESIGN:
+        obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+    player_parts.append(obj)
+    return player_parts
+
+# Create the player at the specified position
+create_player(map, 5, 5)  # Creates entire drill at (5,5)
+
+
 frame.add(map, 1,0)
-h.add(map,10,3)
+text.add(map,10,3)
 
-
-
-#smap.remap()
 smap.show(init=True)
 smap.set(smap.x+1, smap.y)
 
@@ -34,7 +44,7 @@ direction = 1  # X direction changer
 y_change = 1
 
 while True:
-    # Check if the player touches the frame side boundaries
+    '''# Check if the player touches the frame side boundaries
     if player.x >= frame.width -1:  # Right boundary
         direction = -1  # Move left
     elif player.x <= 2:  # Left boundary
@@ -47,7 +57,7 @@ while True:
         y_change = -1  # Move right
     
     # Move the player in the current direction
-    player.set(player.x+1 * direction, player.y+1 * y_change)
+    player.set(player.x+1 * direction, player.y+1 * y_change)'''
 
     # Update and display the map
     smap.remap()
