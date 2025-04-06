@@ -59,19 +59,45 @@ direction = 1  # X direction changer
 y_change = 1
 
 
-#Resource IRON updater and drill animation
-iron_cd = 1
-drill_state = '►'
-while True:
-    iron += 1  # Increment iron count
-    text.rechar(f'Iron: {iron}')  # Update the text object with the new iron count
-    drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
-    drill.rechar(drill_state)  # Update the drill object with the new state
 
-    # Update and display the map
-    smap.remap()
-    smap.show()
-    # Add a small delay to control the speed of movement
-    time.sleep(iron_cd)
+# Global control variable
+running = True
 
+#Resource IRON updater
+def iron_counter():
+    global iron
+    iron_cd = 1
+    while running:
+        iron += 1
+        text.rechar(f"Iron: {iron}")
+        smap.remap()
+        smap.show()
+        time.sleep(iron_cd)  # Update every 1 second
+
+iron_thread = threading.Thread(target=iron_counter, daemon=True)
+iron_thread.start()
+
+#Drill animation
+def drill_animation():
+    drill_state = '►'
+    while running:
+        drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
+        drill.rechar(drill_state)  # Update the drill object with the new state
+        time.sleep(0.1)
+        # Update and display the map
+        smap.remap()
+        smap.show()
+
+drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
+drill_animation_thread.start()
+
+try:
+    while running:  # Main game loop
+        smap.remap()
+        smap.show()
+        time.sleep(0.1)
+except KeyboardInterrupt:
+    running = False  # Signal threads to stop
+    iron_thread.join(timeout=0.5)  # Wait for threads to finish
+    drill_animation_thread.join(timeout=0.5)
 
