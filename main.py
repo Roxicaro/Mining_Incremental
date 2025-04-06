@@ -143,5 +143,4 @@ try:
         time.sleep(0.1)
 except KeyboardInterrupt:
     running = False
-    listener.stop()
-
+    #listener.stop()
