@@ -19,13 +19,16 @@ frame.add(map, 1,0)
 
 #GLOBAL VARIABLES----------------------------------------------------------------
 #Rersources
-iron = -1
+iron = 0
 iron_lock = Lock()
+center_y = int(frame.height / 2)
 #--------------------------------------------------------------------------------
 
 # Create text
-text=se.Text(f'Iron: {iron}', float)
-text.add(map,3,1)
+tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
+tutorial=se.Text(tutorial_state, float)
+iron_text=se.Text(f'Iron: {iron}', float) # Create a text object to display iron count
+tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
@@ -66,15 +69,21 @@ y_change = 1
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, space_pressed, drill_state
+    global iron, space_pressed, drill_state, tutorial_state
     if key == Key.space and not space_pressed:
         space_pressed = True
+        if iron >= 0:
+            iron_text.add(map,3,1)
+        if iron >18:
+            tutorial.remove()
         with iron_lock:
             iron += 1
         for _ in range(2):
             # Update the drill state to show it's working
             drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
             drill.rechar(drill_state)  # Update the drill object with the new state
+            tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' if tutorial_state == ' ' else ' '
+            tutorial.rechar(tutorial_state)
             smap.remap()
             smap.show()
             time.sleep(0.05)
@@ -128,7 +137,7 @@ running = True
 try:
     while running:
         with iron_lock:
-            text.rechar(f'Iron: {iron}')
+            iron_text.rechar(f'Iron: {iron}')
         smap.remap()
         smap.show()
         time.sleep(0.1)
