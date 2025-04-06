@@ -27,8 +27,12 @@ center_y = int(frame.height / 2)
 # Create text
 tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
 tutorial=se.Text(tutorial_state, float)
-iron_text=se.Text(f'Iron: {iron}', float) # Create a text object to display iron count
 tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
+
+command_bottom = '' # Initialize command list
+commands = se.Text(command_bottom, float)
+
+iron_text=se.Text(f'Iron: {iron}', float) # Create a text object to display iron count
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
@@ -69,11 +73,16 @@ y_change = 1
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, space_pressed, drill_state, tutorial_state
+    global iron, space_pressed, drill_state, tutorial_state,command_bottom
     if key == Key.space and not space_pressed:
         space_pressed = True
         if iron >= 0:
             iron_text.add(map,3,1)
+            from command_list import command_list, spacer
+            commands.add(map, 1,frame.height)
+            if command_bottom == '':
+                command_bottom += command_list[0] + spacer
+            commands.rechar(command_bottom)
         if iron >18:
             tutorial.remove()
         with iron_lock:
