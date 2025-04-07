@@ -1,7 +1,7 @@
 import scrap_engine as se
 import time, os, threading, sys
 from pynput import keyboard
-from pynput.keyboard import Listener, Key
+from pynput.keyboard import Listener, Key, KeyCode
 from threading import Lock
 
 os.system("")
@@ -19,8 +19,13 @@ frame.add(map, 1,0)
 
 #GLOBAL VARIABLES----------------------------------------------------------------
 #Rersources
-iron = 0
+iron = int(0)
 iron_lock = Lock()
+
+allow_sell = False # Allow selling of resources
+gold = int(0)
+gold_lock = Lock()
+
 center_y = int(frame.height / 2)
 #--------------------------------------------------------------------------------
 
@@ -33,6 +38,7 @@ command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
 
 iron_text=se.Text(f'Iron: {iron}', float) # Create a text object to display iron count
+gold_text=se.Text(f'Gold: {gold}', float) # Create a text object to display gold count
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
@@ -70,10 +76,13 @@ smap.set(smap.x+1, smap.y)
 direction = 1  # X direction changer
 y_change = 1
 
+#EVENTS------------------------------------------------------------------
+##Check if the player has enough iron to sell for the first time (50 iron)  
+
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, space_pressed, drill_state, tutorial_state,command_bottom
+    global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, allow_sell
     if key == Key.space and not space_pressed:
         space_pressed = True
         if iron >= 0:
@@ -83,8 +92,11 @@ def on_press(key):
             if command_bottom == '':
                 command_bottom += command_list[0] + spacer
             commands.rechar(command_bottom)
+        
+        #Event: Enough tutorial text
         if iron >18:
             tutorial.remove()
+        
         with iron_lock:
             iron += 1
         for _ in range(2):
@@ -97,10 +109,31 @@ def on_press(key):
             smap.show()
             time.sleep(0.05)
 
+    #Check if the player has enough iron to sell for the first time (50 iron)   
+    if iron >= 50 and allow_sell == False:
+        allow_sell = True
+        gold_text.add(map, iron_text.x, iron_text.y+1)
+        if command_bottom == command_list[0] + spacer:
+            command_bottom += command_list[1] + spacer
+
+
+    if key == KeyCode(char='s') and allow_sell == True:
+        with iron_lock:
+            if iron >= 50:
+                iron -= 50
+                with gold_lock:
+                    gold += 1
+                # Update the display of iron and gold
+                iron_text.rechar(f'Iron: {iron}')
+                gold_text.rechar(f'Gold: {gold}')
+                smap.remap()
+                smap.show()
+
 def on_release(key):
     global space_pressed
     if key == Key.space:
         space_pressed = False
+
 
 # Start keyboard listener in a daemon thread
 def start_listener():
@@ -146,7 +179,7 @@ running = True
 try:
     while running:
         with iron_lock:
-            iron_text.rechar(f'Iron: {iron}')
+            iron_text.rechar(f'Iron: {int(iron)}')
         smap.remap()
         smap.show()
         time.sleep(0.1)
