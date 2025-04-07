@@ -22,7 +22,6 @@ frame.add(map, 1,0)
 iron = int(0)
 iron_lock = Lock()
 
-allow_sell = False # Allow selling of resources
 gold = int(0)
 gold_lock = Lock()
 
@@ -37,8 +36,8 @@ tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
 
-iron_text=se.Text(f'Iron: {iron}', float) # Create a text object to display iron count
-gold_text=se.Text(f'Gold: {gold}', float) # Create a text object to display gold count
+iron_text=se.Text(f'Iron: {int(iron)}', float) # Create a text object to display iron count
+gold_text=se.Text(f'', float) # Create a text object to display gold count
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
@@ -83,15 +82,15 @@ y_change = 1
 space_pressed = False
 def on_press(key):
     global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, allow_sell
+    from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
-        if iron >= 0:
+        if iron == 0:
             iron_text.add(map,3,1)
-            from command_list import command_list, spacer
             commands.add(map, 1,frame.height)
             if command_bottom == '':
                 command_bottom += command_list[0] + spacer
-            commands.rechar(command_bottom)
+                commands.rechar(command_bottom)
         
         #Event: Enough tutorial text
         if iron >18:
@@ -99,6 +98,7 @@ def on_press(key):
         
         with iron_lock:
             iron += 1
+            iron_text.rechar(f'Iron: {int(iron)}')
         for _ in range(2):
             # Update the drill state to show it's working
             drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
@@ -110,21 +110,22 @@ def on_press(key):
             time.sleep(0.05)
 
     #Check if the player has enough iron to sell for the first time (50 iron)   
-    if iron >= 50 and allow_sell == False:
-        allow_sell = True
+    if iron >= 50:
         gold_text.add(map, iron_text.x, iron_text.y+1)
         if command_bottom == command_list[0] + spacer:
             command_bottom += command_list[1] + spacer
+            commands.rechar(command_bottom)
+        smap.remap()
+        smap.show()
 
-
-    if key == KeyCode(char='s') and allow_sell == True:
+    if key == KeyCode(char='s') and iron >= 50:
         with iron_lock:
             if iron >= 50:
                 iron -= 50
                 with gold_lock:
                     gold += 1
                 # Update the display of iron and gold
-                iron_text.rechar(f'Iron: {iron}')
+                iron_text.rechar(f'Iron: {int(iron)}')
                 gold_text.rechar(f'Gold: {gold}')
                 smap.remap()
                 smap.show()
@@ -178,8 +179,6 @@ drill_animation_thread.start()'''
 running = True
 try:
     while running:
-        with iron_lock:
-            iron_text.rechar(f'Iron: {int(iron)}')
         smap.remap()
         smap.show()
         time.sleep(0.1)
