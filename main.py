@@ -17,6 +17,23 @@ frame = se.Frame(height-2, width-1,
                  vertical_chars=["|", "|"], state="solid")
 frame.add(map, 1,0)
 
+#Create frame for UI
+
+menu_ui = se.Frame(5,10,
+                 corner_chars=["╭", "╮", "╰", "╯"], 
+                 horizontal_chars=["─", "─"], 
+                 vertical_chars=["│", "│"], state="float")
+
+#Create UI box that will contain all Store UI elements
+ui_box = se.Box(5, 10)
+ui_box.add_ob(menu_ui, 2,0)
+ui_box.add(map, int(width/2)-40,int(height/2)-4)
+
+#UI render function
+def ui_render():
+    menu_ui.add(map, int(width/2)-40,int(height/2)-4)
+    smap.remap()
+
 #GLOBAL VARIABLES----------------------------------------------------------------
 #Rersources
 iron = int(0)
@@ -179,6 +196,7 @@ drill_animation_thread.start()'''
 running = True
 try:
     while running:
+        #ui_render() #Uncomment this once implementation is done
         smap.remap()
         smap.show()
         time.sleep(0.1)
