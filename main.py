@@ -17,21 +17,25 @@ frame = se.Frame(height-2, width-1,
                  vertical_chars=["|", "|"], state="solid")
 frame.add(map, 1,0)
 
-#Create frame for UI
-
-menu_ui = se.Frame(5,10,
+#Create frame for Store UI elements
+menu_ui = se.Frame(5,20,
                  corner_chars=["╭", "╮", "╰", "╯"], 
                  horizontal_chars=["─", "─"], 
                  vertical_chars=["│", "│"], state="float")
 
+#Store text elements
+store_text = se.Text("Store", "float")
+
+
 #Create UI box that will contain all Store UI elements
-ui_box = se.Box(5, 10)
-ui_box.add_ob(menu_ui, 2,0)
-ui_box.add(map, int(width/2)-40,int(height/2)-4)
+ui_box = se.Box(menu_ui.width, menu_ui.height)
+ui_box.add_ob(menu_ui, 0,0)
+ui_box.add_ob(store_text, 1, 1)
+ui_box.add(map, 16,height-8)
 
 #UI render function
 def ui_render():
-    menu_ui.add(map, int(width/2)-40,int(height/2)-4)
+    menu_ui.add(map, int(width/2)-200,int(height/2)+4)
     smap.remap()
 
 #GLOBAL VARIABLES----------------------------------------------------------------
@@ -48,7 +52,7 @@ center_y = int(frame.height / 2)
 # Create text
 tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
 tutorial=se.Text(tutorial_state, float)
-tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
+#tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
