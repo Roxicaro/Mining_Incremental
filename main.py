@@ -18,20 +18,26 @@ frame = se.Frame(height-2, width-1,
 frame.add(map, 1,0)
 
 #Create frame for Store UI elements
-menu_ui = se.Frame(5,20,
+menu_ui = se.Frame(6,40,
                  corner_chars=["╭", "╮", "╰", "╯"], 
                  horizontal_chars=["─", "─"], 
                  vertical_chars=["│", "│"], state="float")
 
 #Store text elements
-store_text = se.Text("Store", "float")
+selector = se.Object('>')
+store_text = se.Text("___Store___", "float")
+auto_mine = se.Text("Auto-mine", float)
+better_drill = se.Text("Better drill", float)
 
 
 #Create UI box that will contain all Store UI elements
 ui_box = se.Box(menu_ui.width, menu_ui.height)
 ui_box.add_ob(menu_ui, 0,0)
-ui_box.add_ob(store_text, 1, 1)
-ui_box.add(map, 16,height-8)
+ui_box.add_ob(store_text, (int(menu_ui.width/2)) -len(store_text.text)+5, 1)
+ui_box.add_ob(auto_mine, 2, 2)
+ui_box.add_ob(better_drill, 2, 3)
+ui_box.add_ob(selector, 1,2)
+ui_box.add(map, 16,5)
 
 #UI render function
 def ui_render():
