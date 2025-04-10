@@ -24,20 +24,16 @@ menu_ui = se.Frame(6,40,
                  vertical_chars=["│", "│"], state="float")
 
 #Store text elements
-selector = se.Object('>')
 store_text = se.Text("___Store___", "float")
-auto_mine = se.Text("Auto-mine", float)
-better_drill = se.Text("Better drill", float)
-
+auto_mine = se.Text("[A]uto-mine", float)
+better_drill = se.Text("[B]etter drill", float)
 
 #Create UI box that will contain all Store UI elements
 ui_box = se.Box(menu_ui.width, menu_ui.height)
 ui_box.add_ob(menu_ui, 0,0)
 ui_box.add_ob(store_text, (int(menu_ui.width/2)) -len(store_text.text)+5, 1)
-ui_box.add_ob(auto_mine, 2, 2)
-ui_box.add_ob(better_drill, 2, 3)
-ui_box.add_ob(selector, 1,2)
-ui_box.add(map, 16,5)
+ui_box.add_ob(auto_mine, 1, 2)
+ui_box.add_ob(better_drill, 1, 3)
 
 #UI render function
 def ui_render():
@@ -51,6 +47,9 @@ iron_lock = Lock()
 
 gold = int(0)
 gold_lock = Lock()
+
+store_can_open = False #Opens once 1st gold is aquired
+store_open = False #Store UI check
 
 center_y = int(frame.height / 2)
 #--------------------------------------------------------------------------------
@@ -108,7 +107,7 @@ y_change = 1
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, allow_sell
+    global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, store_can_open, store_open
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -151,11 +150,26 @@ def on_press(key):
                 iron -= 50
                 with gold_lock:
                     gold += 1
+                    store_can_open = True #Allows store to open
+                    if command_bottom == command_list[0] + spacer + command_list[1] + spacer: #rewrite later
+                        command_bottom += command_list[2] + spacer
+                        commands.rechar(command_bottom)
                 # Update the display of iron and gold
                 iron_text.rechar(f'Iron: {int(iron)}')
                 gold_text.rechar(f'Gold: {gold}')
                 smap.remap()
                 smap.show()
+    
+    #Opens and closes Store
+    if key == KeyCode(char='e') and store_can_open == True: 
+        if store_open == False:
+            ui_box.add(map, 16,5)
+            store_open = True
+
+        elif store_open == True:
+            store_open = False
+            ui_box.remove()
+            
 
 def on_release(key):
     global space_pressed
