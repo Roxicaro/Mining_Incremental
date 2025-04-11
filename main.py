@@ -10,6 +10,36 @@ width, height = os.get_terminal_size()
 map=se.Map(height, 1000, " ")
 smap=se.Submap(map, 0, 0)
 
+running = True
+
+#GLOBAL VARIABLES----------------------------------------------------------------
+#Rock status
+damage = 0
+damage_lock = Lock()
+hp = 1000
+hp_lock = Lock()
+
+#Drill
+drill_power = 1 #Drill power
+drill_power_price = 10
+drill_power_price_increase = 10
+
+#Rersources
+iron = int(0)
+iron_lock = Lock()
+
+gold = int(0)
+gold_lock = Lock()
+
+store_can_open = False #Opens once 1st gold is aquired
+store_open = False #Store UI check
+
+auto_miner = False #Auto miner
+auto_miner_price = 1
+auto_miner_price_increase = 10
+auto_miner_thread = None
+#--------------------------------------------------------------------------------
+
 # Create a frame with the specified height and width
 frame = se.Frame(height-2, width-1, 
                  corner_chars=["+", "+", "+", "+"], 
@@ -22,47 +52,31 @@ menu_ui = se.Frame(6,40,
                  corner_chars=["╭", "╮", "╰", "╯"], 
                  horizontal_chars=["─", "─"], 
                  vertical_chars=["│", "│"], state="float")
+center_y = int(frame.height / 2)
 
 #Store text elements
 store_text = se.Text("___Store___", "float")
 auto_mine = se.Text("[A]uto-mine", float)
-auto_mine_price = se.Text("1 Gold", float) #Price of auto-mine
+auto_mine_price = se.Text(f"{auto_miner_price} Gold", float) #Price of auto-mine
 better_drill = se.Text("[B]etter drill", float)
-better_drill_price = se.Text("1 Gold", float) #Price of better drill
+better_drill_price = se.Text(f"{drill_power_price} Gold", float) #Price of better drill
 
 #Create UI box that will contain all Store UI elements
 ui_box = se.Box(menu_ui.width, menu_ui.height)
 ui_box.add_ob(menu_ui, 0,0)
 ui_box.add_ob(store_text, (int(menu_ui.width/2)) -len(store_text.text)+5, 1)
 ui_box.add_ob(auto_mine, 1, 2)
-ui_box.add_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-1, 2)
+ui_box.add_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-2, 2)
 ui_box.add_ob(better_drill, 1, 3)
 ui_box.add_ob(better_drill_price, menu_ui.width - len(better_drill_price.text)-1, 3)
+
+ui_center_x = int((width/2)-(menu_ui.width/2))
+ui_center_y = int((height/2)-(menu_ui.height/2))
 
 #UI render function
 def ui_render():
     menu_ui.add(map, int(width/2)-200,int(height/2)+4)
     smap.remap()
-
-#GLOBAL VARIABLES----------------------------------------------------------------
-#Drill
-drill_power = 1 #Drill power
-
-#Rersources
-iron = int(0)
-iron_lock = Lock()
-
-gold = int(0)
-gold_lock = Lock()
-
-store_can_open = True #Opens once 1st gold is aquired
-store_open = False #Store UI check
-
-auto_miner = False #Auto miner
-auto_miner_thread = None
-
-center_y = int(frame.height / 2)
-#--------------------------------------------------------------------------------
 
 # Create text
 tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
@@ -78,20 +92,26 @@ gold_text=se.Text(f'', float) # Create a text object to display gold count
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
 
-def create_player(map, start_x=5, start_y=5):
+def create_player(map, start_x=4, start_y=5):
     for char, rel_x, rel_y in PLAYER_DESIGN:
         se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
 
 # Rock design data
 from rock_design import ROCK_DESIGN  # Import rock design data
 
-def create_rock(map, start_x=25, start_y=5):
+def create_rock(map, start_x=24, start_y=5):
     rock_parts = []
     for char, rel_x, rel_y in ROCK_DESIGN:
         if char != ' ':  # Skip empty spaces
             obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
             rock_parts.append(obj)
     return rock_parts
+
+#HP bar objects
+#filled = '■'
+#empty = '□'
+hp_bar = se.Text(f'[■■■■■■■■■■]', float)
+#hp_bar.add(map, int(width-len(hp_bar.text)-1),height-8)
 
 # Create the player at the specified position
 create_player(map, frame.width-16, frame.height-4)  # Creates entire drill at (5,5)
@@ -117,12 +137,16 @@ y_change = 1
 
 #Resource IRON updater automically
 def iron_counter():
-    global iron
+    global iron, damage, damage_lock, hp, hp_lock
     iron_cd = 1
     while running:
         with iron_lock:
             iron += 1
             iron_text.rechar(f"Iron: {iron}")
+        with damage_lock:
+            damage += 1
+        with hp_lock:
+            hp -= 1
         smap.remap()
         smap.show()
         time.sleep(iron_cd)  # Update every 1 second'''
@@ -130,7 +154,11 @@ def iron_counter():
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power
+    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y
+    with damage_lock:
+        damage += drill_power
+    with hp_lock:
+        hp -= drill_power
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -186,7 +214,7 @@ def on_press(key):
     #Opens and closes Store
     if key == KeyCode(char='e') and store_can_open == True: 
         if store_open == False:
-            ui_box.add(map, 16,5)
+            ui_box.add(map, ui_center_x, ui_center_y)
             store_open = True
 
         elif store_open == True:
@@ -194,13 +222,16 @@ def on_press(key):
             ui_box.remove()
     
     #Store actions
-    if key == KeyCode(char='a') and store_open == True and auto_miner == False:
-        if gold >= 1:
+    if key == KeyCode(char='a') and store_open == True:
+        global auto_miner_price, auto_miner_price_increase, drill_power_price, drill_power_price_increase
+        if gold >= auto_miner_price:
             with gold_lock:
                 gold -= 1
             auto_miner = True
+            auto_miner_price = auto_miner_price * auto_miner_price_increase
             gold_text.rechar(f'Gold: {gold}')
-            auto_mine.rechar("[A]uto-mine (Purchased)")
+            auto_mine.rechar(f"[A]uto-mine (Purchased)")
+            auto_mine_price.rechar(f"{auto_miner_price} Gold")
             smap.remap()
             smap.show()
             # Start the thread only if it's not already running
@@ -209,7 +240,7 @@ def on_press(key):
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
                 auto_miner_thread.start()
     
-    if key == KeyCode(char='b') and store_open == True and drill_power < 2:
+    if key == KeyCode(char='b') and store_open == True:
         if gold >= 1:
             with gold_lock:
                 gold -= 1
@@ -234,9 +265,6 @@ def start_listener():
 keyboard_thread = threading.Thread(target=start_listener, daemon=True)
 keyboard_thread.start()
 
-# Global control variable
-running = True
-
 #Drill animation automatic
 '''def drill_animation():
     drill_state = '►'
@@ -251,8 +279,21 @@ running = True
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
 drill_animation_thread.start()'''
 
+'''def hp_animation():
+    global hp, damage,running
+    hp_state = f'[■■■■■■■■■□]'
+    while running:
+        if hp <= 800 and hp >700:
+            hp_bar.add(map, int(width-len(hp_bar.text)-1),height-8)
+            hp_state = f'[■■■■■■■■■□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■■□]'
+            hp_bar.rechar(hp_state)
+            time.sleep(2)
+            smap.remap()
+            smap.show()
+hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
+hp_animation_thread.start()'''
+
 # Main game loop
-running = True
 try:
     while running:
         #ui_render() #Uncomment this once implementation is done
