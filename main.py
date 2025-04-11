@@ -26,14 +26,18 @@ menu_ui = se.Frame(6,40,
 #Store text elements
 store_text = se.Text("___Store___", "float")
 auto_mine = se.Text("[A]uto-mine", float)
+auto_mine_price = se.Text("1 Gold", float) #Price of auto-mine
 better_drill = se.Text("[B]etter drill", float)
+better_drill_price = se.Text("1 Gold", float) #Price of better drill
 
 #Create UI box that will contain all Store UI elements
 ui_box = se.Box(menu_ui.width, menu_ui.height)
 ui_box.add_ob(menu_ui, 0,0)
 ui_box.add_ob(store_text, (int(menu_ui.width/2)) -len(store_text.text)+5, 1)
 ui_box.add_ob(auto_mine, 1, 2)
+ui_box.add_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-1, 2)
 ui_box.add_ob(better_drill, 1, 3)
+ui_box.add_ob(better_drill_price, menu_ui.width - len(better_drill_price.text)-1, 3)
 
 #UI render function
 def ui_render():
@@ -41,6 +45,9 @@ def ui_render():
     smap.remap()
 
 #GLOBAL VARIABLES----------------------------------------------------------------
+#Drill
+drill_power = 1 #Drill power
+
 #Rersources
 iron = int(0)
 iron_lock = Lock()
@@ -48,8 +55,11 @@ iron_lock = Lock()
 gold = int(0)
 gold_lock = Lock()
 
-store_can_open = False #Opens once 1st gold is aquired
+store_can_open = True #Opens once 1st gold is aquired
 store_open = False #Store UI check
+
+auto_miner = False #Auto miner
+auto_miner_thread = None
 
 center_y = int(frame.height / 2)
 #--------------------------------------------------------------------------------
@@ -57,7 +67,7 @@ center_y = int(frame.height / 2)
 # Create text
 tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
 tutorial=se.Text(tutorial_state, float)
-#tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
+tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
@@ -104,10 +114,23 @@ y_change = 1
 #EVENTS------------------------------------------------------------------
 ##Check if the player has enough iron to sell for the first time (50 iron)  
 
+
+#Resource IRON updater automically
+def iron_counter():
+    global iron
+    iron_cd = 1
+    while running:
+        with iron_lock:
+            iron += 1
+            iron_text.rechar(f"Iron: {iron}")
+        smap.remap()
+        smap.show()
+        time.sleep(iron_cd)  # Update every 1 second'''
+
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, store_can_open, store_open
+    global iron, gold, space_pressed, drill_state, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -123,7 +146,7 @@ def on_press(key):
             tutorial.remove()
         
         with iron_lock:
-            iron += 1
+            iron += drill_power
             iron_text.rechar(f'Iron: {int(iron)}')
         for _ in range(2):
             # Update the drill state to show it's working
@@ -169,7 +192,33 @@ def on_press(key):
         elif store_open == True:
             store_open = False
             ui_box.remove()
-            
+    
+    #Store actions
+    if key == KeyCode(char='a') and store_open == True and auto_miner == False:
+        if gold >= 1:
+            with gold_lock:
+                gold -= 1
+            auto_miner = True
+            gold_text.rechar(f'Gold: {gold}')
+            auto_mine.rechar("[A]uto-mine (Purchased)")
+            smap.remap()
+            smap.show()
+            # Start the thread only if it's not already running
+            global auto_miner_thread
+            if auto_miner_thread is None or not auto_miner_thread.is_alive():
+                auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
+                auto_miner_thread.start()
+    
+    if key == KeyCode(char='b') and store_open == True and drill_power < 2:
+        if gold >= 1:
+            with gold_lock:
+                gold -= 1
+                drill_power += 1
+            better_drill.rechar("[B]etter drill (Purchased)")
+            # Update the display of gold
+            gold_text.rechar(f'Gold: {gold}')
+            smap.remap()
+            smap.show()
 
 def on_release(key):
     global space_pressed
@@ -187,20 +236,6 @@ keyboard_thread.start()
 
 # Global control variable
 running = True
-
-#Resource IRON updater automically
-'''def iron_counter():
-    global iron
-    iron_cd = 1
-    while running:
-        #iron += 1
-        text.rechar(f"Iron: {iron}")
-        smap.remap()
-        smap.show()
-        time.sleep(iron_cd)  # Update every 1 second'''
-
-#iron_thread = threading.Thread(target=iron_counter, daemon=True)
-#iron_thread.start()
 
 #Drill animation automatic
 '''def drill_animation():
