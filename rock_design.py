@@ -33,3 +33,29 @@ ROCK_DESIGN = [
 /       \      \  \   \
 \_______\______\___\__/
 '''
+
+'''
+Rock HP and different types of rock
+Stone - [██████████] 100%
+
+Copper Ore - [█████░░░░░] 50%
+
+Iron Ore - [███████░░░] 70%
+
+Gold Vein - [███░░░░░░░] 30%
+
+Diamond Cluster - [████████░░] 80%
+
+Mithril Chunk - [██████████] 100% (Unbreakable!)
+
+Coal Seam - [░░░░░░░░░░] 0% (Depleted)
+
+ █ (filled)
+ ░ (empty)
+ 
+ Alternatives:
+ |■■■■■■□□□□| 50%
+ ■ (filled)
+ □ (empty)
+ ▰▰▰▰▱▱
+ '''
