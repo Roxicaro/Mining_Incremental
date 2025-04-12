@@ -1,0 +1,1 @@
+pyinstaller --onefile --add-data "player_design.py;." --add-data "rock_design.py;." --add-data "command_list.py;." main.py
