@@ -56,6 +56,7 @@ center_y = int(frame.height / 2)
 
 #Store text elements
 store_text = se.Text("___Store___", "float")
+close_store_text = se.Text("[E]xit store", float)
 auto_mine = se.Text("[A]uto-mine", float)
 auto_mine_price = se.Text(f"{auto_miner_price} Gold", float) #Price of auto-mine
 better_drill = se.Text("[B]etter drill", float)
@@ -65,6 +66,7 @@ better_drill_price = se.Text(f"{drill_power_price} Gold", float) #Price of bette
 ui_box = se.Box(menu_ui.width, menu_ui.height)
 ui_box.add_ob(menu_ui, 0,0)
 ui_box.add_ob(store_text, (int(menu_ui.width/2)) -len(store_text.text)+5, 1)
+ui_box.add_ob(close_store_text, menu_ui.width - len(close_store_text.text) -3, menu_ui.height-1)
 ui_box.add_ob(auto_mine, 1, 2)
 ui_box.add_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-2, 2)
 ui_box.add_ob(better_drill, 1, 3)
