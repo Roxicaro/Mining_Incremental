@@ -155,13 +155,13 @@ def iron_counter():
 space_pressed = False
 def on_press(key):
     global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y
-    with damage_lock:
-        damage += drill_power
-    with hp_lock:
-        hp -= drill_power
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
+        with damage_lock:
+            damage += drill_power
+        with hp_lock:
+            hp -= drill_power
         if iron == 0:
             iron_text.add(map,3,1)
             commands.add(map, 1,frame.height)
@@ -282,21 +282,49 @@ drill_animation_thread.start()'''
 '''def hp_animation():
     global hp, damage,running
     hp_state = f'[■■■■■■■■■□]'
+    hp_bar.add(map, int(width-len(hp_bar.text)-1),height-8)
     while running:
-        if hp <= 800 and hp >700:
-            hp_bar.add(map, int(width-len(hp_bar.text)-1),height-8)
-            hp_state = f'[■■■■■■■■■□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■■□]'
+        #if hp <= 800 and hp >700:
+        hp_state = f'[■■■■■■■■■□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■■□]'
+        hp_bar.rechar(hp_state)
+        time.sleep(2)
+        smap.remap()
+        smap.show()'''
+def hp_animation():
+    global hp, damage, running
+    hp_state = '[■■■■■■■■■■]'  # Initial state (full HP)
+    hp_bar.add(map, int(width-len(hp_bar.text)-1), height-8)
+    while running:
+        if hp <= 950:
+            hp_state = '[■■■■■■■■■□]' if hp_state == '[■■■■■■■■■■]' else '[■■■■■■■■■■]'
             hp_bar.rechar(hp_state)
-            time.sleep(2)
-            smap.remap()
-            smap.show()
+        else:
+            hp_state = '[■■■■■■■■■■]'
+            hp_bar.rechar(hp_state)
+        time.sleep(0.5)  # Same timing as your drill animation
+        smap.remap()
+        smap.show()
+
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
-hp_animation_thread.start()'''
+
+#DEBUB
+dmg = se.Text(f"Dmg: {damage}")
+dmg.add(map, 30, 2)
+hpp = se.Text(f"HP: {hp}")
+hpp.add(map, 30, 3)
+
 
 # Main game loop
 try:
     while running:
         #ui_render() #Uncomment this once implementation is done
+        with damage_lock:
+            dmg.rechar(f"Dmg: {damage}")
+        with hp_lock:
+            hpp.rechar(f"HP: {hp}")
+        if hp <= 950 and hp_animation_thread.is_alive() == False:
+            hp_animation_thread.start()
+        
         smap.remap()
         smap.show()
         time.sleep(0.1)
