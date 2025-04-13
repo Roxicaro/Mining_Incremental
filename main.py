@@ -248,10 +248,13 @@ def on_press(key):
             smap.remap()
             smap.show()
             # Start the thread only if it's not already running
-            global auto_miner_thread
+            global auto_miner_thread, drill_animation_thread
             if auto_miner_thread is None or not auto_miner_thread.is_alive():
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
                 auto_miner_thread.start()
+            if drill_animation_thread.is_alive() == False:
+                drill_animation_thread.start()
+
     
     if key == KeyCode(char='b') and store_open == True:
         if gold >= drill_power_price:
@@ -296,8 +299,8 @@ def start_listener():
 keyboard_thread = threading.Thread(target=start_listener, daemon=True)
 keyboard_thread.start()
 
-#Drill animation automatic
-'''def drill_animation():
+#Drill animation function
+def drill_animation():
     drill_state = '►'
     while running:
         drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
@@ -307,20 +310,7 @@ keyboard_thread.start()
         smap.remap()
         smap.show()
 
-drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
-drill_animation_thread.start()'''
-
-'''def hp_animation():
-    global hp, damage,running
-    hp_state = f'[■■■■■■■■■□]'
-    hp_bar.add(map, int(width-len(hp_bar.text)-1),height-8)
-    while running:
-        #if hp <= 800 and hp >700:
-        hp_state = f'[■■■■■■■■■□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■■□]'
-        hp_bar.rechar(hp_state)
-        time.sleep(2)
-        smap.remap()
-        smap.show()'''
+#HP animation function
 def hp_animation():
     global hp, damage, running
     hp_state = '[■■■■■■■■■■]'  # Initial state (full HP)
@@ -336,7 +326,9 @@ def hp_animation():
         smap.remap()
         smap.show()
 
+#Defining threads for animations
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
+drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
 
 #DEBUB
 dmg = se.Text(f"Dmg: {damage}")
