@@ -14,6 +14,7 @@ running = True
 
 #GLOBAL VARIABLES----------------------------------------------------------------
 #Rock status
+first_rock = True
 damage = 0
 damage_lock = Lock()
 hp = 1000
@@ -30,6 +31,9 @@ iron_lock = Lock()
 
 gold = int(0)
 gold_lock = Lock()
+
+rubble = 0
+rubble_lock = Lock()
 
 store_can_open = False #Opens once 1st gold is aquired
 store_open = False #Store UI check
@@ -98,6 +102,8 @@ commands = se.Text(command_bottom, float)
 
 iron_text=se.Text(f'Iron: {int(iron)}', float) # Create a text object to display iron count
 gold_text=se.Text(f'', float) # Create a text object to display gold count
+rubble_text=se.Text(f'', float)
+rubble_text.add(map,3,3)
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
@@ -372,8 +378,15 @@ try:
             dmg.rechar(f"Dmg: {damage}")
         with hp_lock:
             hpp.rechar(f"HP: {hp}")
-        if hp <= 950 and hp_animation_thread.is_alive() == False:
+        if hp <= 950 and hp_animation_thread.is_alive() == False and first_rock == True:
+            first_rock = False
             hp_animation_thread.start()
+        if hp <= 0:
+            with rubble_lock:
+                rubble += 1
+            hp = 1000
+            if rubble >= 1:
+                rubble_text.rechar(f'Rubble: {rubble}')
         
         smap.remap()
         smap.show()
