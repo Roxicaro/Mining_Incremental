@@ -316,9 +316,36 @@ def hp_animation():
     hp_state = '[■■■■■■■■■■]'  # Initial state (full HP)
     hp_bar.add(map, int(width-len(hp_bar.text)-1), height-8)
     while running:
-        if hp <= 950:
+        if hp <= 950 and hp >= 900:
             hp_state = '[■■■■■■■■■□]' if hp_state == '[■■■■■■■■■■]' else '[■■■■■■■■■■]'
             hp_bar.rechar(hp_state)
+        elif hp < 900 and hp >= 800:
+            hp_state = '[■■■■■■■■□□]' if hp_state == '[■■■■■■■■■□]' else '[■■■■■■■■■□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 800 and hp >= 700:
+            hp_state = '[■■■■■■■□□□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 700 and hp >= 600:
+            hp_state = '[■■■■■■□□□□]' if hp_state == '[■■■■■■■□□□]' else '[■■■■■■■□□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 600 and hp >= 500:
+            hp_state = '[■■■■■□□□□□]' if hp_state == '[■■■■■■□□□□]' else '[■■■■■■□□□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 500 and hp >= 400:
+            hp_state = '[■■■■□□□□□□]' if hp_state == '[■■■■■□□□□□]' else '[■■■■■□□□□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 400 and hp >= 300:
+            hp_state = '[■■■□□□□□□□]' if hp_state == '[■■■■□□□□□□]' else '[■■■■□□□□□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 300 and hp >= 200:
+            hp_state = '[■■□□□□□□□□]' if hp_state == '[■■■□□□□□□□]' else '[■■■□□□□□□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 200 and hp >= 100:
+            hp_state = '[■□□□□□□□□□]' if hp_state == '[■■□□□□□□□□]' else '[■■□□□□□□□□]'
+            hp_bar.rechar(hp_state)
+        elif hp < 100 and hp >= 0:
+            hp_state = '[□□□□□□□□□□]' if hp_state == '[■□□□□□□□□□]' else '[■□□□□□□□□□]'
+            hp_bar.rechar(hp_state)        
         else:
             hp_state = '[■■■■■■■■■■]'
             hp_bar.rechar(hp_state)
