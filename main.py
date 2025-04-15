@@ -224,7 +224,7 @@ def on_press(key):
                         commands.rechar(command_bottom)
                 # Update the display of iron and gold
                 iron_text.rechar(f'Iron: {int(iron)}')
-                gold_text.rechar(f'Gold: {gold}')
+                gold_text.rechar(f'Gold: {int(gold)}')
                 smap.remap()
                 smap.show()
     
@@ -243,11 +243,11 @@ def on_press(key):
         if gold >= auto_miner_price:
             with gold_lock:
                 gold -= auto_miner_price
+                gold_text.rechar(f'Gold: {int(gold)}')
             auto_miner = True
             auto_miner_price = auto_miner_price * auto_miner_price_increase
             auto_mine_level += 1
             auto_mine_cd /= (auto_mine_level * 2)
-            gold_text.rechar(f'Gold: {gold}')
             auto_mine.rechar(f"[A]uto-mine ({auto_mine_level})")
             auto_mine_price.rechar(f"{auto_miner_price} Gold")
             ui_box.set_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-1, 2)
@@ -266,11 +266,11 @@ def on_press(key):
         if gold >= drill_power_price:
             with gold_lock:
                 gold -= drill_power_price
+                gold_text.rechar(f'Gold: {int(gold)}')
                 drill_power += 1
                 drill_power_price = drill_power_price * drill_power_price_increase
             better_drill.rechar(f"[B]etter drill ({drill_power})")
-            # Update the display of gold
-            gold_text.rechar(f'Gold: {gold}')
+
             better_drill_price.rechar(f"{drill_power_price} Gold")
             ui_box.set_ob(better_drill_price, menu_ui.width - len(better_drill_price.text)-1, 3)
             smap.remap()
@@ -283,13 +283,13 @@ def on_press(key):
         raise KeyboardInterrupt
     
     #Debugging
-    if key == KeyCode(char='w'):
+    '''if key == KeyCode(char='w'):
         with iron_lock:
             iron += 10000
             iron_text.rechar(f'Iron: {int(iron)}')
         with gold_lock:
             gold += 10000
-            gold_text.rechar(f'Gold: {gold}')
+            gold_text.rechar(f'Gold: {gold}')'''
 
 def on_release(key):
     global space_pressed
@@ -365,19 +365,19 @@ drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
 
 #DEBUB
 dmg = se.Text(f"Dmg: {damage}")
-dmg.add(map, 30, 2)
+#dmg.add(map, 30, 2)
 hpp = se.Text(f"HP: {hp}")
-hpp.add(map, 30, 3)
+#hpp.add(map, 30, 3)
 
 
 # Main game loop
 try:
     while running:
         #ui_render() #Uncomment this once implementation is done
-        with damage_lock:
+        '''with damage_lock:
             dmg.rechar(f"Dmg: {damage}")
         with hp_lock:
-            hpp.rechar(f"HP: {hp}")
+            hpp.rechar(f"HP: {hp}")'''
         if hp <= 950 and hp_animation_thread.is_alive() == False and first_rock == True:
             first_rock = False
             hp_animation_thread.start()
@@ -386,7 +386,8 @@ try:
                 rubble += 1
             hp = 1000
             if rubble >= 1:
-                rubble_text.rechar(f'Rubble: {rubble}')
+                with rubble_lock:
+                    rubble_text.rechar(f'Rubble: {int(rubble)}')
         
         smap.remap()
         smap.show()
