@@ -114,23 +114,21 @@ def create_player(map, start_x=4, start_y=5):
 
 # Rock design data
 from rock_design import ROCK_DESIGN  # Import rock design data
-
+rock_parts = []  # List to store rock parts
 def create_rock(map, start_x=24, start_y=5):
-    rock_parts = []
+    global rock_parts
     for char, rel_x, rel_y in ROCK_DESIGN:
-        if char != ' ':  # Skip empty spaces
-            obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
-            rock_parts.append(obj)
+        obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+        rock_parts.append(obj)
     return rock_parts
 
 #Mining-cart design data
 from ascii_designs import mining_cart_design
 def create_mining_cart(map, start_x=15, start_y=5):
     mining_cart_parts = []
-    for char, rel_x, rel_y in ROCK_DESIGN:
-        if char != ' ':  # Skip empty spaces
-            obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
-            mining_cart_parts.append(obj)
+    for char, rel_x, rel_y in mining_cart_design:
+        obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+        mining_cart_parts.append(obj)
     return mining_cart_parts
 
 #HP bar objects
@@ -149,13 +147,13 @@ drill = se.Object(drill_state)
 drill.add(map, frame.width-12, frame.height-3)
 
 # Place the rock at the specified position:
-rock = create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
+create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
 
 smap.show(init=True)
 smap.set(smap.x+1, smap.y)
 
 #Create mining-cart
-create_mining_cart(map, frame.width-10, frame.height-5)
+#create_mining_cart(map, frame.width-25, frame.height-4)
 
 # Initialize direction variable
 direction = 1  # X direction changer
@@ -296,13 +294,13 @@ def on_press(key):
         raise KeyboardInterrupt
     
     #Debugging
-    '''if key == KeyCode(char='w'):
+    if key == KeyCode(char='w'):
         with iron_lock:
             iron += 10000
             iron_text.rechar(f'Iron: {int(iron)}')
         with gold_lock:
             gold += 10000
-            gold_text.rechar(f'Gold: {gold}')'''
+            gold_text.rechar(f'Gold: {gold}')
 
 def on_release(key):
     global space_pressed
@@ -372,6 +370,20 @@ def hp_animation():
         smap.remap()
         smap.show()
 
+#Explosion animation function
+def explosion_animation():
+    global hp, running, rock_parts
+    explosion = se.Text('BOOM!', float)
+    explosion.add(map, frame.width-8, frame.height-3)
+    explosion.rechar('BOOM!')
+    smap.remap()
+    smap.show()
+    time.sleep(0.5)  # Display the explosion for a short time
+    explosion.remove()  # Remove the explosion text after displaying it
+    smap.remap()
+    smap.show()
+
+
 #Defining threads for animations
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
@@ -381,7 +393,6 @@ dmg = se.Text(f"Dmg: {damage}")
 #dmg.add(map, 30, 2)
 hpp = se.Text(f"HP: {hp}")
 #hpp.add(map, 30, 3)
-
 
 # Main game loop
 try:
@@ -395,9 +406,10 @@ try:
             first_rock = False
             hp_animation_thread.start()
         if hp <= 0:
+            hp = 1000            
+            explosion_animation()
             with rubble_lock:
                 rubble += 1
-            hp = 1000
             if rubble >= 1:
                 with rubble_lock:
                     rubble_text.rechar(f'Rubble: {int(rubble)}')
