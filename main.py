@@ -4,6 +4,66 @@ from pynput import keyboard
 from pynput.keyboard import Listener, Key, KeyCode
 from threading import Lock
 
+#Implement Save Data
+SAVE_FILE = "save.txt"
+
+def save_game():
+    """Saves game data to a simple text file"""
+    with open(SAVE_FILE, 'w') as f:
+        # Write all important variables in a specific order
+        f.write(f"{iron}\n")
+        f.write(f"{gold}\n")
+        f.write(f"{rubble}\n")
+        f.write(f"{drill_power}\n")
+        f.write(f"{auto_miner}\n")
+        f.write(f"{auto_mine_level}\n")
+        f.write(f"{drill_power_price}\n")
+        f.write(f"{auto_miner_price}\n")
+        f.write(f"{hp}\n")
+        f.write(f"{damage}\n")
+
+def load_game():
+    """Loads game data from the text file"""
+    global iron, gold, rubble, drill_power, auto_miner
+    global auto_mine_level, drill_power_price, auto_miner_price, hp, damage
+    
+    try:
+        with open(SAVE_FILE, 'r') as f:
+            lines = f.readlines()
+            if len(lines) < 10:
+                print("Save file corrupted")
+                return False
+                
+            # Read values in the same order they were saved
+            iron = int(lines[0].strip())
+            gold = int(lines[1].strip())
+            rubble = int(lines[2].strip())
+            drill_power = int(lines[3].strip())
+            auto_miner = lines[4].strip().lower() == 'true'
+            auto_mine_level = int(lines[5].strip())
+            drill_power_price = int(lines[6].strip())
+            auto_miner_price = int(lines[7].strip())
+            hp = int(lines[8].strip())
+            damage = int(lines[9].strip())
+            
+            # Update UI
+            iron_text.rechar(f'Iron: {iron}')
+            gold_text.rechar(f'Gold: {gold}')
+            rubble_text.rechar(f'Rubble: {rubble}')
+            auto_mine.rechar(f"[A]uto-mine ({auto_mine_level})")
+            auto_mine_price.rechar(f"{auto_miner_price} Gold")
+            better_drill.rechar(f"[B]etter drill ({drill_power})")
+            better_drill_price.rechar(f"{drill_power_price} Gold")
+
+            return True
+            
+    except FileNotFoundError:
+        print("No save file found")
+    except Exception as e:
+        print(f"Error loading: {e}")
+    return False
+############################
+
 os.system("")
 width, height = os.get_terminal_size()
 
@@ -11,6 +71,7 @@ map=se.Map(height, 1000, " ")
 smap=se.Submap(map, 0, 0)
 
 running = True
+load_game() ######################### NOT WORKING
 
 #GLOBAL VARIABLES----------------------------------------------------------------
 #Rock status
@@ -287,11 +348,17 @@ def on_press(key):
             smap.remap()
             smap.show()
     
+    if key == KeyCode(char='1'):
+        save_game()
+    if key == KeyCode(char='2'):
+        load_game()
+    
     #Press Esc to quit game
     if key == Key.esc:
         global running
+        save_game()
         running = False
-        raise KeyboardInterrupt
+        raise KeyboardInterrupt 
     
     #Debugging
     if key == KeyCode(char='w'):
@@ -422,5 +489,6 @@ try:
         smap.show()
         time.sleep(0.1)
 except KeyboardInterrupt:
+    save_game()
     running = False
     #listener.stop()
