@@ -118,7 +118,7 @@ rock_parts = []  # List to store rock parts
 def create_rock(map, start_x=24, start_y=5):
     global rock_parts
     for char, rel_x, rel_y in ROCK_DESIGN:
-        obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+        obj = se.Object(char,float).add(map, start_x + rel_x, start_y + rel_y)
         rock_parts.append(obj)
     return rock_parts
 
@@ -371,8 +371,11 @@ def hp_animation():
         smap.show()
 
 #Explosion animation function
+boom_box = se.Square(char='#',width=9, height=4,state="float")
+
 def explosion_animation():
-    global hp, running, rock_parts
+    global hp, running, rock_parts, boom_box
+    boom_box.add(map, frame.width-10, frame.height-5)
     explosion = se.Text('BOOM!', float)
     explosion.add(map, frame.width-8, frame.height-3)
     explosion.rechar('BOOM!')
@@ -380,6 +383,7 @@ def explosion_animation():
     smap.show()
     time.sleep(0.5)  # Display the explosion for a short time
     explosion.remove()  # Remove the explosion text after displaying it
+    boom_box.remove()
     smap.remap()
     smap.show()
 
