@@ -6,11 +6,8 @@ from threading import Lock
 
 #Implement Save Data
 SAVE_FILE = "save.txt"
-
 def save_game():
-    """Saves game data to a simple text file"""
     with open(SAVE_FILE, 'w') as f:
-        # Write all important variables in a specific order
         f.write(f"{iron}\n")
         f.write(f"{gold}\n")
         f.write(f"{rubble}\n")
@@ -23,10 +20,7 @@ def save_game():
         f.write(f"{damage}\n")
 
 def load_game():
-    """Loads game data from the text file"""
-    global iron, gold, rubble, drill_power, auto_miner
-    global auto_mine_level, drill_power_price, auto_miner_price, hp, damage
-    
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage    
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
@@ -71,7 +65,6 @@ map=se.Map(height, 1000, " ")
 smap=se.Submap(map, 0, 0)
 
 running = True
-load_game() ######################### NOT WORKING
 
 #GLOBAL VARIABLES----------------------------------------------------------------
 #Rock status
@@ -222,7 +215,6 @@ y_change = 1
 
 #EVENTS------------------------------------------------------------------
 ##Check if the player has enough iron to sell for the first time (50 iron)  
-
 
 #Resource IRON updater automically
 def iron_counter():
