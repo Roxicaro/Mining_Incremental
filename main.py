@@ -220,7 +220,7 @@ def create_mining_cart(map, start_x=15, start_y=5):
 #HP bar objects
 '''
 filled = '■'
-#empty = '□' 
+empty = '□' 
 '''
 hp_bar = se.Text(f'[■■■■■■■■■■]', float)
 
@@ -459,7 +459,7 @@ def hp_animation():
         else:
             hp_state = '[■■■■■■■■■■]'
             hp_bar.rechar(hp_state)
-        time.sleep(0.5)  # Same timing as your drill animation
+        time.sleep(0.5)  # Same timing drill animation
         smap.remap()
         smap.show()
 
@@ -510,7 +510,6 @@ load_game()
 # Main game loop
 try:
     while running:
-        #ui_render() #Uncomment this once implementation is done
         '''with damage_lock:
             dmg.rechar(f"Dmg: {damage}")
         with hp_lock:
@@ -533,4 +532,3 @@ try:
 except KeyboardInterrupt:
     save_game()
     running = False
-    #listener.stop()
