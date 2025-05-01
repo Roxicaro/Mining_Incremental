@@ -6,6 +6,14 @@ from threading import Lock
 
 #Implement Save Data
 SAVE_FILE = "save.txt"
+save_text = se.Text("Game Saved.", "float")
+
+#Show "game saved" notification on screen
+def save_notification(): 
+        save_text.add(map, frame.width - (len(save_text.text)+1), 1)
+        time.sleep(1.5)
+        save_text.remove()
+
 def save_game():
     with open(SAVE_FILE, 'w') as f:
         f.write(f"{iron}\n")
@@ -18,6 +26,7 @@ def save_game():
         f.write(f"{auto_miner_price}\n")
         f.write(f"{hp}\n")
         f.write(f"{damage}\n")
+        save_notification()        
 
 def load_game():
     global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage    
@@ -89,8 +98,10 @@ gold_lock = Lock()
 rubble = 0
 rubble_lock = Lock()
 
+#STATES
 store_can_open = False #Opens once 1st gold is aquired
 store_open = False #Store UI check
+autosave = False #Game starts with auto-save feature disabled
 
 #Auto miner
 auto_miner = False #Auto miner
@@ -234,7 +245,7 @@ def iron_counter():
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y
+    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -252,6 +263,8 @@ def on_press(key):
         #Event: Enough tutorial text
         if iron >18:
             tutorial.remove()
+            if autosave == False:
+                autosave = True        
         
         with iron_lock:
             iron += drill_power
@@ -446,10 +459,23 @@ def explosion_animation():
     smap.remap()
     smap.show()
 
+#Game state checker function
+def game_state():
+    if autosave == True:
+        save_game()
+    time.sleep(30)
+    game_state()
 
-#Defining threads for animations
+#Defining threads
+    #Animations
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
+
+    #Game State
+game_state_thread = threading.Thread(target=game_state, daemon=True)
+    #Start game state checker
+game_state_thread.start()
+
 
 #DEBUB
 dmg = se.Text(f"Dmg: {damage}")
