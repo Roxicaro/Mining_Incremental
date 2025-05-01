@@ -7,12 +7,18 @@ from threading import Lock
 #Implement Save Data
 SAVE_FILE = "save.txt"
 save_text = se.Text("Game Saved.", "float")
+load_text = se.Text("Game Loaded.", "float")
 
 #Show "game saved" notification on screen
 def save_notification(): 
         save_text.add(map, frame.width - (len(save_text.text)+1), 1)
-        time.sleep(1.5)
+        time.sleep(0.75)
         save_text.remove()
+
+def load_notification(): 
+        load_text.add(map, frame.width - (len(load_text.text)+1), 1)
+        time.sleep(0.75)
+        load_text.remove()
 
 def save_game():
     with open(SAVE_FILE, 'w') as f:
@@ -50,14 +56,27 @@ def load_game():
             damage = int(lines[9].strip())
             
             # Update UI
-            iron_text.rechar(f'Iron: {iron}')
-            gold_text.rechar(f'Gold: {gold}')
-            rubble_text.rechar(f'Rubble: {rubble}')
-            auto_mine.rechar(f"[A]uto-mine ({auto_mine_level})")
+            iron_text.remove()
+            gold_text.remove()
+            rubble_text.remove()          
+            
+            if iron > 0:
+                iron_text.add(map,3,1)
+                iron_text.rechar(f'Iron: {iron}')
+            if gold > 0:
+                gold_text.add(map, iron_text.x, iron_text.y+1)
+                gold_text.rechar(f'Gold: {gold}')
+            if rubble > 0:
+                rubble_text.add(map,iron_text.x,iron_text.y+2)
+                rubble_text.rechar(f'Rubble: {rubble}')
+            if auto_mine_level > 0:
+                auto_mine.rechar(f"[A]uto-mine ({auto_mine_level})")
             auto_mine_price.rechar(f"{auto_miner_price} Gold")
-            better_drill.rechar(f"[B]etter drill ({drill_power})")
+            if drill_power >=2:
+                better_drill.rechar(f"[B]etter drill ({drill_power})")
             better_drill_price.rechar(f"{drill_power_price} Gold")
 
+            load_notification()
             return True
             
     except FileNotFoundError:
@@ -165,8 +184,10 @@ tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
 
-iron_text=se.Text(f'Iron: {int(iron)}', float) # Create a text object to display iron count
+iron_text=se.Text(f'', float) # Create a text object to display iron count
+iron_text.add(map,3,1)
 gold_text=se.Text(f'', float) # Create a text object to display gold count
+gold_text.add(map, iron_text.x, iron_text.y+1)
 rubble_text=se.Text(f'', float)
 rubble_text.add(map,3,3)
 
@@ -482,6 +503,9 @@ dmg = se.Text(f"Dmg: {damage}")
 #dmg.add(map, 30, 2)
 hpp = se.Text(f"HP: {hp}")
 #hpp.add(map, 30, 3)
+
+#Try to auto-load game
+load_game()
 
 # Main game loop
 try:
