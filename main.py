@@ -528,9 +528,7 @@ try:
             explosion_animation()
             with rubble_lock:
                 rubble += 1
-            if rubble >= 1:
-                with rubble_lock:
-                    rubble_text.rechar(f'Rubble: {int(rubble)}')
+                rubble_text.rechar(f'Rubble: {int(rubble)}')
         
         smap.remap()
         smap.show()
