@@ -32,10 +32,13 @@ def save_game():
         f.write(f"{auto_miner_price}\n")
         f.write(f"{hp}\n")
         f.write(f"{damage}\n")
+        f.write(f"{store_can_open}\n")
+        f.write(f"{command_bottom}\n")
         save_notification()        
 
+##### LOAD GAME FUNCTION #####
 def load_game():
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage    
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom    
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
@@ -54,6 +57,8 @@ def load_game():
             auto_miner_price = int(lines[7].strip())
             hp = int(lines[8].strip())
             damage = int(lines[9].strip())
+            store_can_open = lines[10].strip().lower() == 'true'
+            command_bottom = lines[11].strip()
             
             # Update UI
             iron_text.remove()
@@ -75,6 +80,13 @@ def load_game():
             if drill_power >=2:
                 better_drill.rechar(f"[B]etter drill ({drill_power})")
             better_drill_price.rechar(f"{drill_power_price} Gold")
+            commands.add(map, 1,frame.height)
+            commands.rechar(f"{command_bottom}")     
+
+            #Start auto_mine if game is loaded
+            if auto_miner == True:
+                auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
+                auto_miner_thread.start()     
 
             load_notification()
             return True
@@ -114,7 +126,7 @@ iron_lock = Lock()
 gold = int(0)
 gold_lock = Lock()
 
-rubble = 0
+rubble = int(0)
 rubble_lock = Lock()
 
 #STATES
@@ -183,6 +195,7 @@ tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
+
 
 iron_text=se.Text(f'', float) # Create a text object to display iron count
 iron_text.add(map,3,1)
@@ -518,7 +531,7 @@ try:
             first_rock = False
             hp_animation_thread.start()
         if hp <= 0:
-            hp = 1000            
+            hp = 1000           
             explosion_animation()
             with rubble_lock:
                 rubble += 1
