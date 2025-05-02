@@ -34,15 +34,16 @@ def save_game():
         f.write(f"{damage}\n")
         f.write(f"{store_can_open}\n")
         f.write(f"{command_bottom}\n")
+        f.write(f"{auto_mine_cd}")
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom    
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd    
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 10:
+            if len(lines) < 13:
                 print("Save file corrupted")
                 return False
                 
@@ -58,13 +59,13 @@ def load_game():
             hp = int(lines[8].strip())
             damage = int(lines[9].strip())
             store_can_open = lines[10].strip().lower() == 'true'
-            command_bottom = lines[11].strip()
+            command_bottom = lines[11].strip() 
+            auto_mine_cd = float(lines[12].strip())          
             
             # Update UI
             iron_text.remove()
             gold_text.remove()
             rubble_text.remove()          
-            
             if iron > 0:
                 iron_text.add(map,3,1)
                 iron_text.rechar(f'Iron: {iron}')
@@ -81,13 +82,14 @@ def load_game():
                 better_drill.rechar(f"[B]etter drill ({drill_power})")
             better_drill_price.rechar(f"{drill_power_price} Gold")
             commands.add(map, 1,frame.height)
-            commands.rechar(f"{command_bottom}")     
+            commands.rechar(f"{command_bottom}")
+
 
             #Start auto_mine if game is loaded
             if auto_miner == True:
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
-                auto_miner_thread.start()     
-
+                auto_miner_thread.start()   
+ 
             load_notification()
             return True
             
@@ -139,7 +141,7 @@ auto_miner = False #Auto miner
 auto_miner_price = 1
 auto_miner_price_increase = 10
 auto_miner_thread = None
-auto_mine_cd = 1
+auto_mine_cd = float(1)
 #--------------------------------------------------------------------------------
 
 # Create a frame with the specified height and width
@@ -251,15 +253,6 @@ create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
 smap.show(init=True)
 smap.set(smap.x+1, smap.y)
 
-#Create mining-cart
-#create_mining_cart(map, frame.width-25, frame.height-4)
-
-# Initialize direction variable
-direction = 1  # X direction changer
-y_change = 1
-
-#EVENTS------------------------------------------------------------------
-##Check if the player has enough iron to sell for the first time (50 iron)  
 
 #Resource IRON updater automically
 def iron_counter():
@@ -274,7 +267,7 @@ def iron_counter():
             hp -= 1
         smap.remap()
         smap.show()
-        time.sleep(auto_mine_cd)  # Update every 1 second'''
+        time.sleep(auto_mine_cd)  # Update every 1 second
 
 # Keyboard control
 space_pressed = False
