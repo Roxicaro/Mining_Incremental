@@ -68,19 +68,19 @@ def load_game():
             rubble_text.remove()          
             if iron > 0:
                 iron_text.add(map,3,1)
-                iron_text.rechar(f'Iron: {iron}')
+                iron_text.rechar(f'Iron: {int(iron)}')
             if gold > 0:
                 gold_text.add(map, iron_text.x, iron_text.y+1)
-                gold_text.rechar(f'Gold: {gold}')
+                gold_text.rechar(f'Gold: {int(gold)}')
             if rubble > 0:
                 rubble_text.add(map,iron_text.x,iron_text.y+2)
-                rubble_text.rechar(f'Rubble: {rubble}')
+                rubble_text.rechar(f'Rubble: {int(rubble)}')
             if auto_mine_level > 0:
                 auto_mine.rechar(f"[A]uto-mine ({auto_mine_level})")
-            auto_mine_price.rechar(f"{auto_miner_price} Gold")
+            auto_mine_price.rechar(f"{int(auto_miner_price)} Gold")
             if drill_power >=2:
                 better_drill.rechar(f"[B]etter drill ({drill_power})")
-            better_drill_price.rechar(f"{drill_power_price} Gold")
+            better_drill_price.rechar(f"{int(drill_power_price)} Gold")
             commands.add(map, 1,frame.height)
             commands.rechar(f"{command_bottom}")
 
@@ -320,15 +320,14 @@ def on_press(key):
         with iron_lock:
             if iron >= 50:
                 iron -= 50
+                iron_text.rechar(f'Iron: {int(iron)}')
                 with gold_lock:
                     gold += 1
+                    gold_text.rechar(f'Gold: {int(gold)}')
                     store_can_open = True #Allows store to open
                     if command_bottom == command_list[0] + spacer + command_list[1] + spacer: #rewrite later
                         command_bottom += command_list[2] + spacer
                         commands.rechar(command_bottom)
-                # Update the display of iron and gold
-                iron_text.rechar(f'Iron: {int(iron)}')
-                gold_text.rechar(f'Gold: {int(gold)}')
                 smap.remap()
                 smap.show()
     
@@ -337,6 +336,8 @@ def on_press(key):
         if store_open == False:
             ui_box.add(map, ui_center_x, ui_center_y)
             store_open = True
+            ui_box.set_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-1, 2) #Fix position of auto_mine price
+            ui_box.set_ob(better_drill_price, menu_ui.width - len(better_drill_price.text)-1, 3) #Fix position of better_drill price
         elif store_open == True:
             store_open = False
             ui_box.remove()
@@ -347,7 +348,7 @@ def on_press(key):
         if gold >= auto_miner_price:
             with gold_lock:
                 gold -= auto_miner_price
-                gold_text.rechar(f'Gold: {int(gold)}')
+                gold_text.rechar(f'Gold: {int(gold):<7}')             
             auto_miner = True
             auto_miner_price = auto_miner_price * auto_miner_price_increase
             auto_mine_level += 1
@@ -370,20 +371,19 @@ def on_press(key):
         if gold >= drill_power_price:
             with gold_lock:
                 gold -= drill_power_price
-                gold_text.rechar(f'Gold: {int(gold)}')
+                gold_text.rechar(f'Gold: {int(gold):<7}')
                 drill_power += 1
                 drill_power_price = drill_power_price * drill_power_price_increase
             better_drill.rechar(f"[B]etter drill ({drill_power})")
-
             better_drill_price.rechar(f"{drill_power_price} Gold")
             ui_box.set_ob(better_drill_price, menu_ui.width - len(better_drill_price.text)-1, 3)
             smap.remap()
             smap.show()
     
-    if key == KeyCode(char='1'):
+    '''if key == KeyCode(char='1'):
         save_game()
     if key == KeyCode(char='2'):
-        load_game()
+        load_game()'''
     
     #Press Esc to quit game
     if key == Key.esc:
@@ -393,13 +393,13 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    if key == KeyCode(char='w'):
+    '''if key == KeyCode(char='w'):
         with iron_lock:
             iron += 10000
             iron_text.rechar(f'Iron: {int(iron)}')
         with gold_lock:
             gold += 10000
-            gold_text.rechar(f'Gold: {gold}')
+            gold_text.rechar(f'Gold: {gold}')'''
 
 def on_release(key):
     global space_pressed
@@ -528,6 +528,7 @@ try:
             explosion_animation()
             with rubble_lock:
                 rubble += 1
+                rubble_text.add(map,3,3)
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
         
         smap.remap()

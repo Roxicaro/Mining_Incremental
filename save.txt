@@ -1,0 +1,13 @@
+16
+0
+0
+1
+True
+1
+10
+10
+934
+66
+True
+[Spacebar]: Mine  [S] Sell  [E] Shop  
+0.5
