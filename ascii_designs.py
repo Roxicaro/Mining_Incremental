@@ -33,4 +33,9 @@ Smelter > Unlocks resource convertion
  |  \   /  |
  |   \_/   |
  '-----^----'
+
+
+Radar with animation
+◶◵◴◷◶◵◴◷
+
 '''
