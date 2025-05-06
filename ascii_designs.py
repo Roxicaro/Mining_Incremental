@@ -38,4 +38,6 @@ Smelter > Unlocks resource convertion
 Radar with animation
 ◶◵◴◷◶◵◴◷
 
+⃝⃝⃝⃝⃝⃝⃝
+
 '''
