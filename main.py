@@ -34,16 +34,18 @@ def save_game():
         f.write(f"{damage}\n")
         f.write(f"{store_can_open}\n")
         f.write(f"{command_bottom}\n")
-        f.write(f"{auto_mine_cd}")
+        f.write(f"{auto_mine_cd}\n")
+        f.write(f"{descend_available}\n")
+        f.write(f"{depth}")
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd    
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth   
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 13:
+            if len(lines) < 15:
                 print("Save file corrupted")
                 return False
                 
@@ -60,12 +62,15 @@ def load_game():
             damage = int(lines[9].strip())
             store_can_open = lines[10].strip().lower() == 'true'
             command_bottom = lines[11].strip() 
-            auto_mine_cd = float(lines[12].strip())          
+            auto_mine_cd = float(lines[12].strip())
+            descend_available = lines[13].strip().lower() == 'true'   
+            depth = int(lines[14].strip())  
             
             # Update UI
             iron_text.remove()
             gold_text.remove()
-            rubble_text.remove()          
+            rubble_text.remove()
+            depth_text.remove()          
             if iron > 0:
                 iron_text.add(map,3,1)
                 iron_text.rechar(f'Iron: {int(iron)}')
@@ -81,6 +86,14 @@ def load_game():
             if drill_power >=2:
                 better_drill.rechar(f"[B]etter drill ({drill_power})")
             better_drill_price.rechar(f"{int(drill_power_price)} Gold")
+            if descend_available == True:
+                start_descend_text.rechar("[D]escend")
+                start_descend_text_price.rechar(f"{descend_price} Rubble")
+                ui_box.set_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_price.text)-1, 4) #reset UI position
+            if depth > 0:
+                depth_text.rechar(f'> Depth: {depth} <')
+                depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
+
             commands.add(map, 1,frame.height)
             commands.rechar(f"{command_bottom}")
 
@@ -142,6 +155,16 @@ auto_miner_price = 1
 auto_miner_price_increase = 10
 auto_miner_thread = None
 auto_mine_cd = float(1)
+
+#Descend
+descend_available = False
+descend_started = False
+descend_price = 5
+
+#Depth
+depth = int(0)
+depth_lock = Lock()
+
 #--------------------------------------------------------------------------------
 
 # Create a frame with the specified height and width
@@ -170,7 +193,8 @@ auto_mine_price = se.Text(f"{auto_miner_price} Gold", float) #Price of auto-mine
 auto_mine_level = 0
 better_drill = se.Text("[B]etter drill", float)
 better_drill_price = se.Text(f"{drill_power_price} Gold", float) #Price of better drill
-#drill level is tracked by the variable drill_power
+start_descend_text = se.Text(f"", float) #Blank descend text to be updated latter
+start_descend_text_price = se.Text(f"", float) #Blank descend text to be updated latter
 
 #Create UI box that will contain all Store UI elements
 ui_box = se.Box(menu_ui.width, menu_ui.height)
@@ -181,30 +205,32 @@ ui_box.add_ob(auto_mine, 1, 2)
 ui_box.add_ob(auto_mine_price, menu_ui.width - len(auto_mine_price.text)-1, 2)
 ui_box.add_ob(better_drill, 1, 3)
 ui_box.add_ob(better_drill_price, menu_ui.width - len(better_drill_price.text)-1, 3)
+ui_box.add_ob(start_descend_text, 1, 4)
+ui_box.add_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_price.text)-1, 4)
 
 ui_center_x = int((width/2)-(menu_ui.width/2))
 ui_center_y = int((height/2)-(menu_ui.height/2))
 
-#UI render function
-def ui_render():
-    menu_ui.add(map, int(width/2)-200,int(height/2)+4)
-    smap.remap()
-
 # Create text
+    #Tutorial text
 tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
 tutorial=se.Text(tutorial_state, float)
 tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
 
+    #Command list text
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
 
-
+    #Resources text
 iron_text=se.Text(f'', float) # Create a text object to display iron count
 iron_text.add(map,3,1)
 gold_text=se.Text(f'', float) # Create a text object to display gold count
 gold_text.add(map, iron_text.x, iron_text.y+1)
 rubble_text=se.Text(f'', float)
 rubble_text.add(map,3,3)
+
+    #Depth counter text
+depth_text = se.Text(f'> Depth: {depth} <', float)
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
@@ -272,7 +298,7 @@ def iron_counter():
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave
+    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -380,6 +406,22 @@ def on_press(key):
             smap.remap()
             smap.show()
     
+    if key == KeyCode(char='d') and store_open == True:
+        global rubble, rubble_lock, descend_price, descend_available, descend_started, depth_lock, depth, depth_text
+        if rubble >= descend_price:
+            with rubble_lock:
+                rubble -= descend_price
+                rubble_text.rechar(f'Rubble: {int(rubble)}')
+            with depth_lock:
+                if descend_started == False:
+                    descend_started = True
+                depth += 1
+                depth_text.remove()
+                depth_text.rechar(f'> Depth: {depth} <')
+                depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
+            smap.remap()
+            smap.show()
+    
     '''if key == KeyCode(char='1'):
         save_game()
     if key == KeyCode(char='2'):
@@ -395,11 +437,14 @@ def on_press(key):
     #Debugging
     '''if key == KeyCode(char='w'):
         with iron_lock:
-            iron += 10000
+            iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
         with gold_lock:
-            gold += 10000
-            gold_text.rechar(f'Gold: {gold}')'''
+            gold += 100000
+            gold_text.rechar(f'Gold: {gold}')
+        with rubble_lock:
+            rubble += 1000
+            rubble_text.rechar(f'Rubble: {rubble}')'''
 
 def on_release(key):
     global space_pressed
@@ -432,34 +477,34 @@ def hp_animation():
     hp_state = '[■■■■■■■■■■]'  # Initial state (full HP)
     hp_bar.add(map, int(width-len(hp_bar.text)-1), height-8)
     while running:
-        if hp <= 950 and hp >= 900:
+        if hp <= (hp*0.95) and hp >= (hp*0.9):
             hp_state = '[■■■■■■■■■□]' if hp_state == '[■■■■■■■■■■]' else '[■■■■■■■■■■]'
             hp_bar.rechar(hp_state)
-        elif hp < 900 and hp >= 800:
+        elif hp < (hp*0.9) and hp >= (hp*0.8):
             hp_state = '[■■■■■■■■□□]' if hp_state == '[■■■■■■■■■□]' else '[■■■■■■■■■□]'
             hp_bar.rechar(hp_state)
-        elif hp < 800 and hp >= 700:
+        elif hp < (hp*0.8) and hp >= (hp*0.7):
             hp_state = '[■■■■■■■□□□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 700 and hp >= 600:
+        elif hp < (hp*0.7) and hp >= (hp*0.6):
             hp_state = '[■■■■■■□□□□]' if hp_state == '[■■■■■■■□□□]' else '[■■■■■■■□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 600 and hp >= 500:
+        elif hp < (hp*0.6) and hp >= (hp*0.5):
             hp_state = '[■■■■■□□□□□]' if hp_state == '[■■■■■■□□□□]' else '[■■■■■■□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 500 and hp >= 400:
+        elif hp < (hp*0.5) and hp >= (hp*0.4):
             hp_state = '[■■■■□□□□□□]' if hp_state == '[■■■■■□□□□□]' else '[■■■■■□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 400 and hp >= 300:
+        elif hp < (hp*0.4) and hp >= (hp*0.3):
             hp_state = '[■■■□□□□□□□]' if hp_state == '[■■■■□□□□□□]' else '[■■■■□□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 300 and hp >= 200:
+        elif hp < (hp*0.3) and hp >= (hp*0.2):
             hp_state = '[■■□□□□□□□□]' if hp_state == '[■■■□□□□□□□]' else '[■■■□□□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 200 and hp >= 100:
+        elif hp < (hp*0.2) and hp >= (hp*0.1):
             hp_state = '[■□□□□□□□□□]' if hp_state == '[■■□□□□□□□□]' else '[■■□□□□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < 100 and hp >= 0:
+        elif hp < (hp*0.1) and hp >= 0:
             hp_state = '[□□□□□□□□□□]' if hp_state == '[■□□□□□□□□□]' else '[■□□□□□□□□□]'
             hp_bar.rechar(hp_state)        
         else:
@@ -524,7 +569,12 @@ try:
             first_rock = False
             hp_animation_thread.start()
         if hp <= 0:
-            hp = 1000           
+            if descend_available == False:
+                descend_available = True
+                start_descend_text.rechar("[D]escend")
+                start_descend_text_price.rechar(f"{descend_price} Rubble")
+                ui_box.set_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_price.text)-1, 4)
+            hp = 1000 + int(100 * depth)           
             explosion_animation()
             with rubble_lock:
                 rubble += 1
