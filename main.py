@@ -126,6 +126,7 @@ running = True
 first_rock = True
 damage = 0
 damage_lock = Lock()
+max_hp = 1000
 hp = 1000
 hp_lock = Lock()
 
@@ -477,34 +478,34 @@ def hp_animation():
     hp_state = '[■■■■■■■■■■]'  # Initial state (full HP)
     hp_bar.add(map, int(width-len(hp_bar.text)-1), height-8)
     while running:
-        if hp <= (hp*0.95) and hp >= (hp*0.9):
+        if hp <= (max_hp*0.95) and hp >= (max_hp*0.9):
             hp_state = '[■■■■■■■■■□]' if hp_state == '[■■■■■■■■■■]' else '[■■■■■■■■■■]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.9) and hp >= (hp*0.8):
+        elif hp < (max_hp*0.9) and hp >= (max_hp*0.8):
             hp_state = '[■■■■■■■■□□]' if hp_state == '[■■■■■■■■■□]' else '[■■■■■■■■■□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.8) and hp >= (hp*0.7):
+        elif hp < (max_hp*0.8) and hp >= (max_hp*0.7):
             hp_state = '[■■■■■■■□□□]' if hp_state == '[■■■■■■■■□□]' else '[■■■■■■■■□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.7) and hp >= (hp*0.6):
+        elif hp < (max_hp*0.7) and hp >= (max_hp*0.6):
             hp_state = '[■■■■■■□□□□]' if hp_state == '[■■■■■■■□□□]' else '[■■■■■■■□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.6) and hp >= (hp*0.5):
+        elif hp < (max_hp*0.6) and hp >= (max_hp*0.5):
             hp_state = '[■■■■■□□□□□]' if hp_state == '[■■■■■■□□□□]' else '[■■■■■■□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.5) and hp >= (hp*0.4):
+        elif hp < (max_hp*0.5) and hp >= (max_hp*0.4):
             hp_state = '[■■■■□□□□□□]' if hp_state == '[■■■■■□□□□□]' else '[■■■■■□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.4) and hp >= (hp*0.3):
+        elif hp < (max_hp*0.4) and hp >= (max_hp*0.3):
             hp_state = '[■■■□□□□□□□]' if hp_state == '[■■■■□□□□□□]' else '[■■■■□□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.3) and hp >= (hp*0.2):
+        elif hp < (max_hp*0.3) and hp >= (max_hp*0.2):
             hp_state = '[■■□□□□□□□□]' if hp_state == '[■■■□□□□□□□]' else '[■■■□□□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.2) and hp >= (hp*0.1):
+        elif hp < (max_hp*0.2) and hp >= (max_hp*0.1):
             hp_state = '[■□□□□□□□□□]' if hp_state == '[■■□□□□□□□□]' else '[■■□□□□□□□□]'
             hp_bar.rechar(hp_state)
-        elif hp < (hp*0.1) and hp >= 0:
+        elif hp < (max_hp*0.1) and hp >= 0:
             hp_state = '[□□□□□□□□□□]' if hp_state == '[■□□□□□□□□□]' else '[■□□□□□□□□□]'
             hp_bar.rechar(hp_state)        
         else:
@@ -574,7 +575,8 @@ try:
                 start_descend_text.rechar("[D]escend")
                 start_descend_text_price.rechar(f"{descend_price} Rubble")
                 ui_box.set_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_price.text)-1, 4)
-            hp = 1000 + int(100 * depth)           
+            max_hp = 1000 + int(100 * depth)
+            hp = max_hp         
             explosion_animation()
             with rubble_lock:
                 rubble += 1
