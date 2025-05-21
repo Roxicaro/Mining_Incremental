@@ -233,6 +233,10 @@ rubble_text.add(map,3,3)
     #Depth counter text
 depth_text = se.Text(f'> Depth: {depth} <', float)
 
+    #TESTING TEXT FOR COLORS
+'''test_text = se.Text(f'\033[31;1;4mTESTING COLORS\033[0m', float)
+test_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 2)'''
+
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
 
@@ -582,6 +586,10 @@ try:
                 rubble += 1
                 rubble_text.add(map,3,3)
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
+        '''#TESTING COLORS
+        for i in range(30,38):
+            test_text.rechar(f'\033[{i};1;4mTESTING COLORS {i}\033[0m')
+            time.sleep(0.1)'''
         
         smap.remap()
         smap.show()
