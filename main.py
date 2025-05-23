@@ -250,9 +250,14 @@ rock_parts = []  # List to store rock parts
 def create_rock(map, start_x=24, start_y=5):
     global rock_parts
     for char, rel_x, rel_y in ROCK_DESIGN:
-        obj = se.Object(char,float).add(map, start_x + rel_x, start_y + rel_y)
+        obj = se.Object(char,float)
+        obj.add(map, start_x + rel_x, start_y + rel_y)
         rock_parts.append(obj)
     return rock_parts
+
+def remove_rock():
+    for part in rock_parts:
+        part.remove()
 
 #Mining-cart design data
 from ascii_designs import mining_cart_design
@@ -262,6 +267,7 @@ def create_mining_cart(map, start_x=15, start_y=5):
         obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
         mining_cart_parts.append(obj)
     return mining_cart_parts
+
 
 #HP bar objects
 '''
@@ -280,6 +286,7 @@ drill.add(map, frame.width-12, frame.height-3)
 
 # Place the rock at the specified position:
 create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
+#create_mining_cart(map, frame.width-40, frame.height-4)
 
 smap.show(init=True)
 smap.set(smap.x+1, smap.y)
