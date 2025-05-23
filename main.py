@@ -148,6 +148,8 @@ rubble_lock = Lock()
 #STATES
 store_can_open = False #Opens once 1st gold is aquired
 store_open = False #Store UI check
+build_can_open = False
+build_open = False
 autosave = False #Game starts with auto-save feature disabled
 
 #Auto miner
@@ -182,6 +184,11 @@ menu_ui = se.Frame(6,40,
                  vertical_chars=["│", "│"], state="float")
 center_y = int(frame.height / 2)
 
+build_ui = se.Frame(6,40,
+                 corner_chars=["╭", "╮", "╰", "╯"], 
+                 horizontal_chars=["─", "─"], 
+                 vertical_chars=["│", "│"], state="float")
+
 #Exit game UI text
 exit_text = se.Text("[Esc] Quit", float)
 exit_text.add(map, frame.width - len(exit_text.text), frame.height)
@@ -211,6 +218,10 @@ ui_box.add_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_p
 
 ui_center_x = int((width/2)-(menu_ui.width/2))
 ui_center_y = int((height/2)-(menu_ui.height/2))
+
+#Create UI box that will contain all Build UI elements
+build_ui_box = se.Box(build_ui.width, build_ui.height)
+build_ui_box.add_ob(build_ui, 0,0)
 
 # Create text
     #Tutorial text
@@ -310,7 +321,7 @@ def iron_counter():
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price
+    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -349,8 +360,7 @@ def on_press(key):
         gold_text.add(map, iron_text.x, iron_text.y+1)
         if command_bottom == command_list[0] + spacer:
             command_bottom += command_list[1] + spacer
-            commands.rechar(command_bottom)
-            
+            commands.rechar(command_bottom)    
         smap.remap()
         smap.show()
 
@@ -379,6 +389,15 @@ def on_press(key):
         elif store_open == True:
             store_open = False
             ui_box.remove()
+    
+    #Opens and closes Build UI
+    if key == KeyCode(char='t'): 
+        if build_open == False and build_can_open == True:
+            build_ui_box.add(map, ui_center_x, ui_center_y)
+            build_open = True
+        elif build_open == True:
+            build_open = False
+            build_ui_box.remove()
     
     #Store actions
     if key == KeyCode(char='a') and store_open == True:
@@ -555,9 +574,8 @@ def game_state():
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
 
-    #Game State
+    #Game State checker
 game_state_thread = threading.Thread(target=game_state, daemon=True)
-    #Start game state checker
 game_state_thread.start()
 
 
