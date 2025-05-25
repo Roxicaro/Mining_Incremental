@@ -36,16 +36,17 @@ def save_game():
         f.write(f"{command_bottom}\n")
         f.write(f"{auto_mine_cd}\n")
         f.write(f"{descend_available}\n")
-        f.write(f"{depth}")
+        f.write(f"{depth}\n")
+        f.write(f"{mining_cart_bought}")
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth   
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought   
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 15:
+            if len(lines) < 16:
                 print("Save file corrupted")
                 return False
                 
@@ -64,7 +65,8 @@ def load_game():
             command_bottom = lines[11].strip() 
             auto_mine_cd = float(lines[12].strip())
             descend_available = lines[13].strip().lower() == 'true'   
-            depth = int(lines[14].strip())  
+            depth = int(lines[14].strip())
+            mining_cart_bought = lines[15].strip().lower() == 'true'  
             
             # Update UI
             iron_text.remove()
@@ -97,11 +99,15 @@ def load_game():
             commands.add(map, 1,frame.height)
             commands.rechar(f"{command_bottom}")
 
-
             #Start auto_mine if game is loaded
             if auto_miner == True:
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
-                auto_miner_thread.start()   
+                auto_miner_thread.start()
+            if mining_cart_bought == True:
+                create_mining_cart(map, frame.width-40, frame.height-4)
+                mining_cart_price_text.rechar("ACTIVE!")
+                auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
+                auto_sell_thread.start() 
  
             load_notification()
             return True
@@ -151,6 +157,8 @@ store_open = False #Store UI check
 build_can_open = False
 build_open = False
 autosave = False #Game starts with auto-save feature disabled
+mining_cart_bought = False #Mining cart bought state
+auto_sell_thread = None #Auto-sell thread
 
 #Auto miner
 auto_miner = False #Auto miner
@@ -219,9 +227,20 @@ ui_box.add_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_p
 ui_center_x = int((width/2)-(menu_ui.width/2))
 ui_center_y = int((height/2)-(menu_ui.height/2))
 
+
+#Build UI text elements
+build_text = se.Text("___Build___", "float")
+close_build_text = se.Text("[T]Exit build", float)
+mining_cart_text = se.Text("[M]ining cart", float)
+mining_cart_price_text = se.Text(f"10 Gold", float)
+
 #Create UI box that will contain all Build UI elements
 build_ui_box = se.Box(build_ui.width, build_ui.height)
 build_ui_box.add_ob(build_ui, 0,0)
+build_ui_box.add_ob(build_text, (int(build_ui.width/2)) -len(build_text.text)+5, 1)
+build_ui_box.add_ob(close_build_text, build_ui.width - len(close_build_text.text) -3, build_ui.height-1)
+build_ui_box.add_ob(mining_cart_text, 1, 2)
+build_ui_box.add_ob(mining_cart_price_text, build_ui.width - len(mining_cart_price_text.text)-1, 2)
 
 # Create text
     #Tutorial text
@@ -318,10 +337,25 @@ def iron_counter():
         smap.show()
         time.sleep(auto_mine_cd)  # Update every 1 second
 
+def auto_sell(): #Starts once the mining cart is bought and is active
+    global iron, gold, mining_cart_bought
+    while running:
+        if mining_cart_bought == True:
+            with iron_lock:
+                if iron >= 50:
+                    iron -= 50
+                    iron_text.rechar(f'Iron: {int(iron)}')
+                    with gold_lock:
+                        gold += 1
+                        gold_text.rechar(f'Gold: {int(gold)}')
+            smap.remap()
+            smap.show()
+        time.sleep(0.1)
+
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open
+    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -380,7 +414,7 @@ def on_press(key):
                 smap.show()
     
     #Opens and closes Store
-    if key == KeyCode(char='e') and store_can_open == True: 
+    if key == KeyCode(char='e') and store_can_open == True and build_open == False: 
         if store_open == False:
             ui_box.add(map, ui_center_x, ui_center_y)
             store_open = True
@@ -392,12 +426,30 @@ def on_press(key):
     
     #Opens and closes Build UI
     if key == KeyCode(char='t'): 
-        if build_open == False and build_can_open == True:
+        if build_open == False and build_can_open == False and store_open == False:
             build_ui_box.add(map, ui_center_x, ui_center_y)
             build_open = True
         elif build_open == True:
             build_open = False
             build_ui_box.remove()
+    
+    #Build actions
+    if key == KeyCode(char='m') and build_open == True and mining_cart_bought == False:
+        if gold >= 10:
+            with gold_lock:
+                gold -= 10
+                gold_text.rechar(f'Gold: {int(gold):<7}')
+            #Create mining cart
+            create_mining_cart(map, frame.width-40, frame.height-4)
+            mining_cart_price_text.rechar("ACTIVE!")
+            ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
+            mining_cart_bought = True
+            smap.remap()
+            smap.show()
+        #Start auto-sell thread if mining cart is bought
+        if mining_cart_bought == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
+            auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
+            auto_sell_thread.start()
     
     #Store actions
     if key == KeyCode(char='a') and store_open == True:
@@ -452,11 +504,11 @@ def on_press(key):
                 depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
             smap.remap()
             smap.show()
-    
-    '''if key == KeyCode(char='1'):
-        save_game()
-    if key == KeyCode(char='2'):
-        load_game()'''
+        if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
+            command_bottom += command_list[3] + spacer
+            commands.rechar(command_bottom)
+            smap.remap()
+            smap.show()
     
     #Press Esc to quit game
     if key == Key.esc:

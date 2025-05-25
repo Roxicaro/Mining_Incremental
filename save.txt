@@ -1,15 +1,16 @@
-69
-26
-2
-2
-True
-2
-100
-100
-581
-2419
-True
-[Spacebar]: Mine  [S] Sell  [E] Shop  
-0.125
-True
+1
 0
+0
+1
+False
+0
+10
+1
+999
+1
+False
+[Spacebar]: Mine  
+1.0
+False
+0
+False
