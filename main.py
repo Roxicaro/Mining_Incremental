@@ -37,16 +37,17 @@ def save_game():
         f.write(f"{auto_mine_cd}\n")
         f.write(f"{descend_available}\n")
         f.write(f"{depth}\n")
-        f.write(f"{mining_cart_bought}")
+        f.write(f"{mining_cart_bought}\n")
+        f.write(f"{build_can_open}")
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought   
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open   
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 16:
+            if len(lines) < 17:
                 print("Save file corrupted")
                 return False
                 
@@ -66,7 +67,8 @@ def load_game():
             auto_mine_cd = float(lines[12].strip())
             descend_available = lines[13].strip().lower() == 'true'   
             depth = int(lines[14].strip())
-            mining_cart_bought = lines[15].strip().lower() == 'true'  
+            mining_cart_bought = lines[15].strip().lower() == 'true'
+            build_can_open = lines[16].strip().lower() == 'true'  
             
             # Update UI
             iron_text.remove()
@@ -426,7 +428,7 @@ def on_press(key):
     
     #Opens and closes Build UI
     if key == KeyCode(char='t'): 
-        if build_open == False and build_can_open == False and store_open == False:
+        if build_open == False and build_can_open == True and store_open == False:
             build_ui_box.add(map, ui_center_x, ui_center_y)
             build_open = True
         elif build_open == True:
@@ -504,11 +506,12 @@ def on_press(key):
                 depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
             smap.remap()
             smap.show()
-        if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
-            command_bottom += command_list[3] + spacer
-            commands.rechar(command_bottom)
-            smap.remap()
-            smap.show()
+            if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
+                command_bottom += command_list[3] + spacer
+                commands.rechar(command_bottom)
+                build_can_open = True
+                smap.remap()
+                smap.show()
     
     #Press Esc to quit game
     if key == Key.esc:
