@@ -292,13 +292,29 @@ def remove_rock():
         part.remove()
 
 #Mining-cart design data
-from ascii_designs import mining_cart_design
-def create_mining_cart(map, start_x=15, start_y=5):
-    mining_cart_parts = []
+from ascii_designs import mining_cart_design, mining_cart_design_2
+mining_cart_parts = []
+def create_mining_cart(map, start_x=15, start_y=5, mining_cart_design=mining_cart_design):
+    global mining_cart_parts
     for char, rel_x, rel_y in mining_cart_design:
-        obj = se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+        obj = se.Object(char)
+        obj.add(map, start_x + rel_x, start_y + rel_y)
         mining_cart_parts.append(obj)
     return mining_cart_parts
+
+def remove_mining_cart():
+    for part in mining_cart_parts:
+        part.remove()
+
+def mining_cart_animation():
+    global mining_cart_parts
+    create_mining_cart(map, frame.width-40, frame.height-4)
+    time.sleep(0.5)  # Adjust the speed of the animation
+    remove_mining_cart()
+    create_mining_cart(map, frame.width-40, frame.height-4, mining_cart_design_2)
+    time.sleep(0.5)  # Adjust the speed of the animation
+    remove_mining_cart()
+    mining_cart_animation()
 
 
 #HP bar objects
@@ -521,7 +537,7 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    '''if key == KeyCode(char='w'):
+    if key == KeyCode(char='w'):
         with iron_lock:
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
@@ -530,7 +546,11 @@ def on_press(key):
             gold_text.rechar(f'Gold: {gold}')
         with rubble_lock:
             rubble += 1000
-            rubble_text.rechar(f'Rubble: {rubble}')'''
+            rubble_text.rechar(f'Rubble: {rubble}')
+    
+    if key == KeyCode(char='7'):
+        global mining_cart_animation_thread
+        mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
 
 def on_release(key):
     global space_pressed
@@ -628,6 +648,7 @@ def game_state():
     #Animations
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
+mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
 
     #Game State checker
 game_state_thread = threading.Thread(target=game_state, daemon=True)
