@@ -309,13 +309,18 @@ def remove_mining_cart():
 def mining_cart_animation():
     global mining_cart_parts
     create_mining_cart(map, frame.width-40, frame.height-4)
-    time.sleep(0.5)  # Adjust the speed of the animation
+    time.sleep(0.3)  # Adjust the speed of the animation
     remove_mining_cart()
-    create_mining_cart(map, frame.width-40, frame.height-4, mining_cart_design_2)
-    time.sleep(0.5)  # Adjust the speed of the animation
+    create_mining_cart(map, frame.width-41, frame.height-4, mining_cart_design_2)
+    time.sleep(0.3)  # Adjust the speed of the animation
+    remove_mining_cart()
+    create_mining_cart(map, frame.width-42, frame.height-4)
+    time.sleep(0.3)  # Adjust the speed of the animation
+    remove_mining_cart()
+    create_mining_cart(map, frame.width-41, frame.height-4, mining_cart_design_2)
+    time.sleep(0.3)  # Adjust the speed of the animation
     remove_mining_cart()
     mining_cart_animation()
-
 
 #HP bar objects
 '''
@@ -551,6 +556,7 @@ def on_press(key):
     if key == KeyCode(char='7'):
         global mining_cart_animation_thread
         mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+        mining_cart_animation_thread.start()
 
 def on_release(key):
     global space_pressed
