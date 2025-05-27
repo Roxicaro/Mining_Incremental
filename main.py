@@ -106,7 +106,7 @@ def load_game():
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
                 auto_miner_thread.start()
             if mining_cart_bought == True:
-                create_mining_cart(map, frame.width-40, frame.height-4)
+                create_mining_cart(map, frame.width-35, frame.height-4)
                 mining_cart_price_text.rechar("ACTIVE!")
                 auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
                 auto_sell_thread.start() 
@@ -336,16 +336,16 @@ def remove_mining_cart():
 
 def mining_cart_animation():
     global mining_cart_parts
-    create_mining_cart(map, frame.width-40, frame.height-4)
+    create_mining_cart(map, frame.width-35, frame.height-4)
     time.sleep(0.3)  # Adjust the speed of the animation
     remove_mining_cart()
-    create_mining_cart(map, frame.width-41, frame.height-4, mining_cart_design_2)
+    create_mining_cart(map, frame.width-36, frame.height-4, mining_cart_design_2)
     time.sleep(0.3)  # Adjust the speed of the animation
     remove_mining_cart()
-    create_mining_cart(map, frame.width-42, frame.height-4)
+    create_mining_cart(map, frame.width-37, frame.height-4)
     time.sleep(0.3)  # Adjust the speed of the animation
     remove_mining_cart()
-    create_mining_cart(map, frame.width-41, frame.height-4, mining_cart_design_2)
+    create_mining_cart(map, frame.width-36, frame.height-4, mining_cart_design_2)
     time.sleep(0.3)  # Adjust the speed of the animation
     remove_mining_cart()
     mining_cart_animation()
@@ -367,7 +367,6 @@ drill.add(map, frame.width-12, frame.height-3)
 
 # Place the rock at the specified position:
 create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
-#create_mining_cart(map, frame.width-40, frame.height-4)
 
 smap.show(init=True)
 smap.set(smap.x, smap.y)
@@ -491,10 +490,12 @@ def on_press(key):
                 gold -= 10
                 gold_text.rechar(f'Gold: {int(gold):<7}')
             #Create mining cart
-            create_mining_cart(map, frame.width-40, frame.height-4)
             mining_cart_price_text.rechar("ACTIVE!")
             ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
             mining_cart_bought = True
+            global mining_cart_animation_thread
+            mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+            mining_cart_animation_thread.start()
             smap.remap()
             smap.show()
         #Start auto-sell thread if mining cart is bought
@@ -543,24 +544,25 @@ def on_press(key):
     if key == KeyCode(char='d') and store_open == True:
         global rubble, rubble_lock, descend_price, descend_available, descend_started, depth_lock, depth, depth_text
         if rubble >= descend_price:
+            if descend_started == False:
+                descend_started = True
+            if build_can_open == False:
+                build_can_open = True
             with rubble_lock:
                 rubble -= descend_price
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
             with depth_lock:
-                if descend_started == False:
-                    descend_started = True
                 depth += 1
                 depth_text.remove()
                 depth_text.rechar(f'> Depth: {depth} <')
                 depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
             smap.remap()
             smap.show()
-            if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
-                command_bottom += command_list[3] + spacer
-                commands.rechar(command_bottom)
-                build_can_open = True
-                smap.remap()
-                smap.show()
+        if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
+            command_bottom += command_list[3] + spacer
+            commands.rechar(command_bottom)
+            smap.remap()
+            smap.show()
     
     #Press Esc to quit game
     if key == Key.esc:
@@ -581,10 +583,10 @@ def on_press(key):
             rubble += 1000
             rubble_text.rechar(f'Rubble: {rubble}')'''
     
-    if key == KeyCode(char='7'):
+    '''if key == KeyCode(char='7'):
         global mining_cart_animation_thread
         mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
-        mining_cart_animation_thread.start()
+        mining_cart_animation_thread.start()'''
 
 def on_release(key):
     global space_pressed
