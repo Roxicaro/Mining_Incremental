@@ -124,7 +124,7 @@ def load_game():
 os.system("")
 width, height = os.get_terminal_size()
 
-map=se.Map(height, 1000, " ")
+map=se.Map(height, width+31, " ")
 smap=se.Submap(map, 0, 0)
 
 running = True
@@ -278,14 +278,31 @@ def create_player(map, start_x=4, start_y=5):
 #Background
 from ascii_designs import background_top
 bg_top = []
-def create_bg_top(map, start_x=1, start_y=1):
+def create_bg_top(map, start_x=9, start_y=1):
     global bg_top
     for char, rel_x, rel_y in background_top:
         obj = se.Object(char,float)
         obj.add(map, start_x + rel_x, start_y + rel_y)
         bg_top.append(obj)
     return bg_top
+
+def remove_bg_top():
+    bg_top.clear()
+    for obj in bg_top:
+        obj.remove()
+
+from ascii_designs import background_bottom
+bg_bottom = []
+def create_bg_bottom(map, start_x=1, start_y=frame.height-6):
+    global bg_bottom
+    for char, rel_x, rel_y in background_bottom:
+        obj = se.Object(char,float)
+        obj.add(map, start_x + rel_x, start_y + rel_y)
+        bg_top.append(obj)
+    return bg_bottom
+
 create_bg_top(map)
+create_bg_bottom(map)
 
 # Rock design data
 from rock_design import ROCK_DESIGN  # Import rock design data
@@ -353,7 +370,7 @@ create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
 #create_mining_cart(map, frame.width-40, frame.height-4)
 
 smap.show(init=True)
-smap.set(smap.x+1, smap.y)
+smap.set(smap.x, smap.y)
 
 
 #Resource IRON updater automically
@@ -708,7 +725,6 @@ try:
         for i in range(30,38):
             test_text.rechar(f'\033[{i};1;4mTESTING COLORS {i}\033[0m')
             time.sleep(0.1)'''
-        
         smap.remap()
         smap.show()
         time.sleep(0.1)
