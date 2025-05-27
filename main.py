@@ -43,6 +43,7 @@ def save_game():
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
+    from command_list import spacer
     global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open   
     try:
         with open(SAVE_FILE, 'r') as f:
@@ -63,7 +64,7 @@ def load_game():
             hp = int(lines[8].strip())
             damage = int(lines[9].strip())
             store_can_open = lines[10].strip().lower() == 'true'
-            command_bottom = lines[11].strip() 
+            command_bottom = lines[11].strip() + spacer
             auto_mine_cd = float(lines[12].strip())
             descend_available = lines[13].strip().lower() == 'true'   
             depth = int(lines[14].strip())
@@ -499,6 +500,7 @@ def on_press(key):
             smap.remap()
             smap.show()
         #Start auto-sell thread if mining cart is bought
+        global auto_sell_thread
         if mining_cart_bought == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
             auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
             auto_sell_thread.start()
@@ -556,11 +558,11 @@ def on_press(key):
                 depth_text.remove()
                 depth_text.rechar(f'> Depth: {depth} <')
                 depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
-            smap.remap()
-            smap.show()
-        if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
-            command_bottom += command_list[3] + spacer
-            commands.rechar(command_bottom)
+            if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer:
+                command_bottom += command_list[3] + spacer
+                commands.rechar(command_bottom)
+                smap.remap()
+                smap.show()
             smap.remap()
             smap.show()
     
