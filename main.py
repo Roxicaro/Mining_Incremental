@@ -271,10 +271,21 @@ test_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 2)'''
 
 # Player design data
 from player_design import PLAYER_DESIGN  # Import player design data
-
 def create_player(map, start_x=4, start_y=5):
     for char, rel_x, rel_y in PLAYER_DESIGN:
         se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
+
+#Background
+from ascii_designs import background_top
+bg_top = []
+def create_bg_top(map, start_x=1, start_y=1):
+    global bg_top
+    for char, rel_x, rel_y in background_top:
+        obj = se.Object(char,float)
+        obj.add(map, start_x + rel_x, start_y + rel_y)
+        bg_top.append(obj)
+    return bg_top
+create_bg_top(map)
 
 # Rock design data
 from rock_design import ROCK_DESIGN  # Import rock design data
@@ -542,7 +553,7 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    if key == KeyCode(char='w'):
+    '''if key == KeyCode(char='w'):
         with iron_lock:
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
@@ -551,7 +562,7 @@ def on_press(key):
             gold_text.rechar(f'Gold: {gold}')
         with rubble_lock:
             rubble += 1000
-            rubble_text.rechar(f'Rubble: {rubble}')
+            rubble_text.rechar(f'Rubble: {rubble}')'''
     
     if key == KeyCode(char='7'):
         global mining_cart_animation_thread
