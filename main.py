@@ -3,6 +3,7 @@ import time, os, threading, sys
 from pynput import keyboard
 from pynput.keyboard import Listener, Key, KeyCode
 from threading import Lock
+import random
 
 #Implement Save Data
 SAVE_FILE = "save.txt"
@@ -156,6 +157,14 @@ gold_lock = Lock()
 rubble = int(0)
 rubble_lock = Lock()
 
+coal = int(0)
+coal_lock = Lock()
+
+#Function for resource chance
+def resource_chance():
+    roll = random.randrange(0, 10)
+    return roll
+
 #STATES
 store_can_open = False #Opens once 1st gold is aquired
 store_open = False #Store UI check
@@ -180,7 +189,7 @@ descend_price = 5
 
 #Depth
 depth = int(0)
-depth_lock = Lock()
+depth_lock = Lock() 
 
 #--------------------------------------------------------------------------------
 
@@ -259,12 +268,17 @@ command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
 
     #Resources text
-iron_text=se.Text(f'', float) # Create a text object to display iron count
+iron_text=se.Text(f'', float)
 iron_text.add(map,3,1)
-gold_text=se.Text(f'', float) # Create a text object to display gold count
+
+gold_text=se.Text(f'', float)
 gold_text.add(map, iron_text.x, iron_text.y+1)
+
 rubble_text=se.Text(f'', float)
 rubble_text.add(map,3,3)
+
+coal_text=se.Text(f'', float)
+coal_text.add(map,3,4)
 
     #Depth counter text
 depth_text = se.Text(f'> Depth: {depth} <', float)
@@ -437,13 +451,11 @@ def on_press(key):
             if command_bottom == '':
                 command_bottom += command_list[0] + spacer
                 commands.rechar(command_bottom)
-        
         #Event: Enough tutorial text
         if iron >18:
             tutorial.remove()
             if autosave == False:
                 autosave = True        
-        
         with iron_lock:
             iron += drill_power
             iron_text.rechar(f'Iron: {int(iron)}')
