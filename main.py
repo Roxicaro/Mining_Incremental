@@ -110,7 +110,9 @@ def load_game():
                 create_mining_cart(map, frame.width-35, frame.height-4)
                 mining_cart_price_text.rechar("ACTIVE!")
                 auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
-                auto_sell_thread.start() 
+                auto_sell_thread.start()
+                mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+                mining_cart_animation_thread.start()
  
             load_notification()
             return True
@@ -162,6 +164,7 @@ build_open = False
 autosave = False #Game starts with auto-save feature disabled
 mining_cart_bought = False #Mining cart bought state
 auto_sell_thread = None #Auto-sell thread
+bg_animation_thread = None
 
 #Auto miner
 auto_miner = False #Auto miner
@@ -283,14 +286,19 @@ def create_bg_top(map, start_x=9, start_y=1):
     global bg_top
     for char, rel_x, rel_y in background_top:
         obj = se.Object(char,float)
-        obj.add(map, start_x + rel_x, start_y + rel_y)
+        if (start_x + rel_x) < 1:
+            rel_x += 109
+            obj.add(map, start_x + rel_x, start_y + rel_y)
+        else:
+            obj.add(map, start_x + rel_x, start_y + rel_y)
         bg_top.append(obj)
+    
     return bg_top
 
 def remove_bg_top():
-    bg_top.clear()
     for obj in bg_top:
         obj.remove()
+    bg_top.clear()
 
 from ascii_designs import background_bottom
 bg_bottom = []
@@ -298,9 +306,18 @@ def create_bg_bottom(map, start_x=1, start_y=frame.height-6):
     global bg_bottom
     for char, rel_x, rel_y in background_bottom:
         obj = se.Object(char,float)
-        obj.add(map, start_x + rel_x, start_y + rel_y)
+        if (start_x + rel_x) < 1:
+            rel_x += 109
+            obj.add(map, start_x + rel_x, start_y + rel_y)
+        else:
+            obj.add(map, start_x + rel_x, start_y + rel_y)
         bg_top.append(obj)
     return bg_bottom
+
+def remove_bg_bottom():
+    for obj in bg_bottom:
+        obj.remove()
+    bg_bottom.clear()
 
 create_bg_top(map)
 create_bg_bottom(map)
@@ -544,7 +561,7 @@ def on_press(key):
             smap.show()
     
     if key == KeyCode(char='d') and store_open == True:
-        global rubble, rubble_lock, descend_price, descend_available, descend_started, depth_lock, depth, depth_text
+        global rubble, rubble_lock, descend_price, descend_available, descend_started, depth_lock, depth, depth_text, bg_animation_thread
         if rubble >= descend_price:
             if descend_started == False:
                 descend_started = True
@@ -563,6 +580,9 @@ def on_press(key):
                 commands.rechar(command_bottom)
                 smap.remap()
                 smap.show()
+            if bg_animation_thread is None or not bg_animation_thread.is_alive():
+                bg_animation_thread = threading.Thread(target=bg_animation, daemon=True)
+                bg_animation_thread.start()
             smap.remap()
             smap.show()
     
@@ -586,9 +606,10 @@ def on_press(key):
             rubble_text.rechar(f'Rubble: {rubble}')'''
     
     '''if key == KeyCode(char='7'):
-        global mining_cart_animation_thread
-        mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
-        mining_cart_animation_thread.start()'''
+        global bg_animation_thread
+        if bg_animation_thread is None or not bg_animation_thread.is_alive():
+            bg_animation_thread = threading.Thread(target=bg_animation, daemon=True)
+            bg_animation_thread.start()'''
 
 def on_release(key):
     global space_pressed
@@ -604,6 +625,37 @@ def start_listener():
 keyboard_thread = threading.Thread(target=start_listener, daemon=True)
 keyboard_thread.start()
 
+
+#Refresh UI
+def refresh_variables():
+    with iron_lock:
+        iron_text.rechar(f'Iron: {int(iron)}')
+    with gold_lock:
+        gold_text.rechar(f'Gold: {int(gold)}')
+    with rubble_lock:
+        rubble_text.rechar(f'Rubble: {int(rubble)}')
+    with depth_lock:
+        depth_text.rechar(f'> Depth: {depth} <')
+    smap.remap()
+    smap.show()
+
+#Background animation
+move_pos = 8
+def bg_animation():
+    global move_pos
+    move_pos = 8
+    while running:
+        if move_pos > -101:
+            remove_bg_top()
+            remove_bg_bottom()
+            create_bg_top(map, move_pos)
+            create_bg_bottom(map, move_pos)
+            refresh_variables()
+            move_pos -= 1
+        else:
+            break
+        time.sleep(0.03)
+    
 #Drill animation function
 def drill_animation():
     drill_state = '►'
@@ -687,6 +739,7 @@ def game_state():
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
 mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+#bg_animation_thread = threading.Thread(target=bg_animation, daemon=True)
 
     #Game State checker
 game_state_thread = threading.Thread(target=game_state, daemon=True)
