@@ -174,6 +174,7 @@ autosave = False #Game starts with auto-save feature disabled
 mining_cart_bought = False #Mining cart bought state
 auto_sell_thread = None #Auto-sell thread
 bg_animation_thread = None
+sparks_animation_thread = None
 
 #Auto miner
 auto_miner = False #Auto miner
@@ -335,6 +336,37 @@ def remove_bg_bottom():
 
 create_bg_top(map)
 create_bg_bottom(map)
+
+#Smelter design data
+from ascii_designs import smelter
+smelter_parts = []
+def create_smelter(map, start_x=5, start_y=frame.height-5):
+    global smelter_parts
+    for char, rel_x, rel_y in smelter:
+        obj = se.Object(char,float)
+        obj.add(map, start_x + rel_x, start_y + rel_y)
+        smelter_parts.append(obj)
+    return smelter_parts
+
+def remove_smelter():
+    for part in smelter_parts:
+        part.remove()
+    smelter_parts.clear()
+
+#Color smelter parts
+def color_smelter(color='\033[0m'):
+    global smelter_parts
+    for part in smelter_parts:
+        if '█' in part.char:
+            part.rechar(f'{color}█\033[0m')
+        elif '▓' in part.char:
+            part.rechar(f'{color}▓\033[0m')
+    smap.remap()
+    smap.show()
+
+#create_smelter(map)
+#color_smelter('\033[38;5;9m')
+
 
 # Rock design data
 from rock_design import ROCK_DESIGN  # Import rock design data
@@ -617,11 +649,11 @@ def on_press(key):
             rubble += 1000
             rubble_text.rechar(f'Rubble: {rubble}')'''
     
-    '''if key == KeyCode(char='7'):
-        global bg_animation_thread
-        if bg_animation_thread is None or not bg_animation_thread.is_alive():
-            bg_animation_thread = threading.Thread(target=bg_animation, daemon=True)
-            bg_animation_thread.start()'''
+    if key == KeyCode(char='7'):
+        global sparks_animation_thread
+        if sparks_animation_thread is None or not sparks_animation_thread.is_alive():
+            sparks_animation_thread = threading.Thread(target=sparks_animation, daemon=True)
+            sparks_animation_thread.start()
 
 def on_release(key):
     global space_pressed
@@ -668,6 +700,25 @@ def bg_animation():
             break
         time.sleep(0.03)
     
+
+#Sparks animation
+sparks = [".", ",", "'", "`", "·", "ˊ"]
+def sparks_animation():
+    global running
+    while running:
+        spark_1 = se.Object(random.choice(sparks), "float")
+        spark_1.add(map, drill.x, drill.y-1)
+        spark_2 = se.Object(random.choice(sparks), "float")
+        spark_2.add(map, drill.x+1, drill.y-2)
+        spark_3 = se.Object(random.choice(sparks), "float")
+        spark_3.add(map, drill.x-1, drill.y-2)
+        smap.remap()
+        smap.show()
+        time.sleep(0.05)
+        spark_1.remove()
+        spark_2.remove()
+        spark_3.remove()
+
 #Drill animation function
 def drill_animation():
     drill_state = '►'
@@ -751,7 +802,6 @@ def game_state():
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
 mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
-#bg_animation_thread = threading.Thread(target=bg_animation, daemon=True)
 
     #Game State checker
 game_state_thread = threading.Thread(target=game_state, daemon=True)

@@ -1,0 +1,17 @@
+45
+0
+0
+1
+False
+0
+10
+1
+955
+45
+False
+[Spacebar]: Mine  
+1.0
+False
+0
+False
+False

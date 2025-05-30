@@ -30,13 +30,6 @@ Mining cart > Autosells IRON > moves back and forth
 │▽△□ │  
 ╰⊙─⊙╯
 
-
-Smelter > Unlocks resource convertion
-╔═══╗
-║███║
-║▓▓▓║
-╚═▲═╝
-
    .-----.
   /       \
  |  (===)  |
@@ -48,7 +41,7 @@ Smelter > Unlocks resource convertion
 '''
 
 #Background                                                 
-pure_background_top =r'''
+background_top_design =r'''
                      .                                               __,,,-''-.....     ____ ___.--..     ,   
 -'-.    ,-''-''`._,./ \          ,-.-L....__---.            _..   ,-'              \   /    '        `'--' ``.
     \ ,'               ]    ,-`-'              \          ,'   `.'                  | .'                      
@@ -61,7 +54,7 @@ pure_background_top =r'''
                                                     |/                                                      
                                                     ;                                                        
 '''
-pure_background_bottom = r'''
+background_bottom_design = r'''
                            ,
                           / \
                          ,'  \                                          ,
@@ -69,17 +62,25 @@ pure_background_bottom = r'''
 ..._______ _____ ____..'       ,V`,       _,., ___,,.-'  `-..____...._,'  `-... --`--......_____,,..,  `-.,_
 '''
 
+#Smelter
+    #Unlocks resource convertion
+smelter_design= r'''
+╔═══╗
+║███║
+║▓▓▓║
+╚═▲═╝
+'''
 
-
-def ascii_converter(input):
-    background_top = []
+def ascii_converter(input, color="\033[0m"):
+    output = []
     lines = input.strip('\n').split('\n')
 
     for y, line in enumerate(lines):
         for x, char in enumerate(line):
             if char != " ":
-                background_top.append((f'\033[38;5;236m{char}\033[0m', x, y))
-    return background_top
+                output.append((f'{color}{char}\033[0m', x, y))
+    return output
 
-background_top = ascii_converter(pure_background_top)
-background_bottom = ascii_converter(pure_background_bottom)
+background_top = ascii_converter(background_top_design, "\033[38;5;236m")
+background_bottom = ascii_converter(background_bottom_design, "\033[38;5;236m")
+smelter = ascii_converter(smelter_design)
