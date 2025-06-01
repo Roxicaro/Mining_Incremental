@@ -172,6 +172,7 @@ build_can_open = False
 build_open = False
 autosave = False #Game starts with auto-save feature disabled
 mining_cart_bought = False #Mining cart bought state
+smelter_bought = False #Smelter bought state
 auto_sell_thread = None #Auto-sell thread
 bg_animation_thread = None
 sparks_animation_thread = None
@@ -247,8 +248,10 @@ ui_center_y = int((height/2)-(menu_ui.height/2))
 #Build UI text elements
 build_text = se.Text("___Build___", "float")
 close_build_text = se.Text("[T]Exit build", float)
-mining_cart_text = se.Text("[M]ining cart", float)
+mining_cart_text = se.Text("[1]Mining cart", float)
 mining_cart_price_text = se.Text(f"10 Gold", float)
+smelter_text = se.Text("[2]Smelter", float)
+smelter_price_text = se.Text(f"50 Gold", float)
 
 #Create UI box that will contain all Build UI elements
 build_ui_box = se.Box(build_ui.width, build_ui.height)
@@ -257,6 +260,8 @@ build_ui_box.add_ob(build_text, (int(build_ui.width/2)) -len(build_text.text)+5,
 build_ui_box.add_ob(close_build_text, build_ui.width - len(close_build_text.text) -3, build_ui.height-1)
 build_ui_box.add_ob(mining_cart_text, 1, 2)
 build_ui_box.add_ob(mining_cart_price_text, build_ui.width - len(mining_cart_price_text.text)-1, 2)
+build_ui_box.add_ob(smelter_text, 1, 3)
+build_ui_box.add_ob(smelter_price_text, build_ui.width - len(smelter_price_text.text)-1, 3)
 
 # Create text
     #Tutorial text
@@ -546,25 +551,41 @@ def on_press(key):
             build_ui_box.remove()
     
     #Build actions
-    if key == KeyCode(char='m') and build_open == True and mining_cart_bought == False:
-        if gold >= 10:
-            with gold_lock:
-                gold -= 10
-                gold_text.rechar(f'Gold: {int(gold):<7}')
-            #Create mining cart
-            mining_cart_price_text.rechar("ACTIVE!")
-            ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
-            mining_cart_bought = True
-            global mining_cart_animation_thread
-            mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
-            mining_cart_animation_thread.start()
-            smap.remap()
-            smap.show()
-        #Start auto-sell thread if mining cart is bought
-        global auto_sell_thread
-        if mining_cart_bought == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
-            auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
-            auto_sell_thread.start()
+    global smelter_bought
+    if build_open == True:
+        if key == KeyCode(char='1') and mining_cart_bought == False:
+            if gold >= 10:
+                with gold_lock:
+                    gold -= 10
+                    gold_text.rechar(f'Gold: {int(gold):<7}')
+                #Create mining cart
+                create_mining_cart(map, frame.width-35, frame.height-4)
+                mining_cart_price_text.rechar("ACTIVE!")
+                ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
+                mining_cart_bought = True
+                global mining_cart_animation_thread
+                mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+                mining_cart_animation_thread.start()
+                smap.remap()
+                smap.show()
+            #Start auto-sell thread if mining cart is bought
+            global auto_sell_thread
+            if mining_cart_bought == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
+                auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
+                auto_sell_thread.start()
+        
+        if key == KeyCode(char='2') and smelter_bought == False:
+            if gold >= 50:
+                with gold_lock:
+                    gold -= 50
+                    gold_text.rechar(f'Gold: {int(gold):<7}')
+                #Create smelter
+                create_smelter(map, 5, frame.height-5)
+                smelter_text.remove()
+                smelter_price_text.remove()
+                smelter_bought = True
+                smap.remap()
+                smap.show()
     
     #Store actions
     if key == KeyCode(char='a') and store_open == True:
@@ -638,7 +659,7 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    '''if key == KeyCode(char='w'):
+    if key == KeyCode(char='w'):
         with iron_lock:
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
@@ -647,13 +668,13 @@ def on_press(key):
             gold_text.rechar(f'Gold: {gold}')
         with rubble_lock:
             rubble += 1000
-            rubble_text.rechar(f'Rubble: {rubble}')'''
+            rubble_text.rechar(f'Rubble: {rubble}')
     
-    if key == KeyCode(char='7'):
+    '''if key == KeyCode(char='7'):
         global sparks_animation_thread
         if sparks_animation_thread is None or not sparks_animation_thread.is_alive():
             sparks_animation_thread = threading.Thread(target=sparks_animation, daemon=True)
-            sparks_animation_thread.start()
+            sparks_animation_thread.start()'''
 
 def on_release(key):
     global space_pressed
@@ -702,7 +723,7 @@ def bg_animation():
     
 
 #Sparks animation
-sparks = [".", ",", "'", "`", "·", "ˊ"]
+'''sparks = [".", ",", "'", "`", "·", "ˊ"]
 def sparks_animation():
     global running
     while running:
@@ -717,7 +738,7 @@ def sparks_animation():
         time.sleep(0.05)
         spark_1.remove()
         spark_2.remove()
-        spark_3.remove()
+        spark_3.remove()'''
 
 #Drill animation function
 def drill_animation():
