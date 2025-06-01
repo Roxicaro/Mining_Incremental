@@ -39,17 +39,18 @@ def save_game():
         f.write(f"{descend_available}\n")
         f.write(f"{depth}\n")
         f.write(f"{mining_cart_bought}\n")
+        f.write(f"{mining_cart_state}\n")
         f.write(f"{build_can_open}")
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
     from command_list import spacer
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open   
+    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open, mining_cart_state  
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 17:
+            if len(lines) < 18:
                 print("Save file corrupted")
                 return False
                 
@@ -70,7 +71,8 @@ def load_game():
             descend_available = lines[13].strip().lower() == 'true'   
             depth = int(lines[14].strip())
             mining_cart_bought = lines[15].strip().lower() == 'true'
-            build_can_open = lines[16].strip().lower() == 'true'  
+            mining_cart_state = lines[16].strip().lower() == 'true'
+            build_can_open = lines[17].strip().lower() == 'true'  
             
             # Update UI
             iron_text.remove()
@@ -110,10 +112,12 @@ def load_game():
             if mining_cart_bought == True:
                 create_mining_cart(map, frame.width-35, frame.height-4)
                 mining_cart_price_text.rechar("ACTIVE!")
-                auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
-                auto_sell_thread.start()
-                mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
-                mining_cart_animation_thread.start()
+                if auto_sell_thread is None or not auto_sell_thread.is_alive():
+                    auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
+                    auto_sell_thread.start()
+                if mining_cart_animation_thread is None or not mining_cart_animation_thread.is_alive():
+                    mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+                    mining_cart_animation_thread.start()
  
             load_notification()
             return True
@@ -161,8 +165,8 @@ coal = int(0)
 coal_lock = Lock()
 
 #Function for resource chance
-def resource_chance():
-    roll = random.randrange(0, 10)
+def resource_chance(top_range=10):
+    roll = random.randrange(0, top_range)
     return roll
 
 #STATES
@@ -172,6 +176,7 @@ build_can_open = False
 build_open = False
 autosave = False #Game starts with auto-save feature disabled
 mining_cart_bought = False #Mining cart bought state
+mining_cart_state = False
 smelter_bought = False #Smelter bought state
 auto_sell_thread = None #Auto-sell thread
 bg_animation_thread = None
@@ -404,20 +409,21 @@ def remove_mining_cart():
         part.remove()
 
 def mining_cart_animation():
-    global mining_cart_parts
-    create_mining_cart(map, frame.width-35, frame.height-4)
-    time.sleep(0.3)  # Adjust the speed of the animation
-    remove_mining_cart()
-    create_mining_cart(map, frame.width-36, frame.height-4, mining_cart_design_2)
-    time.sleep(0.3)  # Adjust the speed of the animation
-    remove_mining_cart()
-    create_mining_cart(map, frame.width-37, frame.height-4)
-    time.sleep(0.3)  # Adjust the speed of the animation
-    remove_mining_cart()
-    create_mining_cart(map, frame.width-36, frame.height-4, mining_cart_design_2)
-    time.sleep(0.3)  # Adjust the speed of the animation
-    remove_mining_cart()
-    mining_cart_animation()
+    global mining_cart_parts, mining_cart_state
+    if mining_cart_state == True:
+        create_mining_cart(map, frame.width-35, frame.height-4)
+        time.sleep(0.3)  # Adjust the speed of the animation
+        remove_mining_cart()
+        create_mining_cart(map, frame.width-36, frame.height-4, mining_cart_design_2)
+        time.sleep(0.3)  # Adjust the speed of the animation
+        remove_mining_cart()
+        create_mining_cart(map, frame.width-37, frame.height-4)
+        time.sleep(0.3)  # Adjust the speed of the animation
+        remove_mining_cart()
+        create_mining_cart(map, frame.width-36, frame.height-4, mining_cart_design_2)
+        time.sleep(0.3)  # Adjust the speed of the animation
+        remove_mining_cart()
+        mining_cart_animation()
 
 #HP bar objects
 '''
@@ -443,7 +449,7 @@ smap.set(smap.x, smap.y)
 
 #Resource IRON updater automically
 def iron_counter():
-    global iron, damage, damage_lock, hp, hp_lock, auto_mine_cd
+    global iron, damage, damage_lock, hp, hp_lock, auto_mine_cd, coal, coal_lock, coal_text, depth
     while running:
         with iron_lock:
             iron += 1
@@ -452,14 +458,18 @@ def iron_counter():
             damage += 1
         with hp_lock:
             hp -= 1
+        if depth > 0 and resource_chance(100) == 0:
+            with coal_lock:
+                coal += 1
+                coal_text.rechar(f"Coal: {coal}")
         smap.remap()
         smap.show()
         time.sleep(auto_mine_cd)  # Update every 1 second
 
 def auto_sell(): #Starts once the mining cart is bought and is active
-    global iron, gold, mining_cart_bought
+    global iron, gold, mining_cart_bought, mining_cart_state
     while running:
-        if mining_cart_bought == True:
+        if mining_cart_bought == True and mining_cart_state == True:
             with iron_lock:
                 if iron >= 50:
                     iron -= 50
@@ -469,12 +479,14 @@ def auto_sell(): #Starts once the mining cart is bought and is active
                         gold_text.rechar(f'Gold: {int(gold)}')
             smap.remap()
             smap.show()
+        else:
+            break
         time.sleep(0.1)
 
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread
+    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -496,6 +508,10 @@ def on_press(key):
         with iron_lock:
             iron += drill_power
             iron_text.rechar(f'Iron: {int(iron)}')
+        if depth > 0 and resource_chance(100) == 0:
+            with coal_lock:
+                coal += 1
+                coal_text.rechar(f'Coal: {coal}')
         for _ in range(2):
             # Update the drill state to show it's working
             drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
@@ -551,10 +567,10 @@ def on_press(key):
             build_ui_box.remove()
     
     #Build actions
-    global smelter_bought
+    global smelter_bought, mining_cart_state, mining_cart_animation_thread
     if build_open == True:
-        if key == KeyCode(char='1') and mining_cart_bought == False:
-            if gold >= 10:
+        if key == KeyCode(char='1'):
+            if gold >= 10 and mining_cart_bought == False:
                 with gold_lock:
                     gold -= 10
                     gold_text.rechar(f'Gold: {int(gold):<7}')
@@ -563,14 +579,26 @@ def on_press(key):
                 mining_cart_price_text.rechar("ACTIVE!")
                 ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
                 mining_cart_bought = True
-                global mining_cart_animation_thread
                 mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
                 mining_cart_animation_thread.start()
+            
+            if mining_cart_bought:
+                mining_cart_state = not mining_cart_state
+                if mining_cart_state:
+                    mining_cart_price_text.rechar("ACTIVE!")
+
+                    if mining_cart_animation_thread is None or not mining_cart_animation_thread.is_alive():
+                        mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+                        mining_cart_animation_thread.start()
+                else:
+                    mining_cart_price_text.rechar("INACTIVE")
+                ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
                 smap.remap()
                 smap.show()
+
             #Start auto-sell thread if mining cart is bought
             global auto_sell_thread
-            if mining_cart_bought == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
+            if mining_cart_bought == True and mining_cart_state == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
                 auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
                 auto_sell_thread.start()
         
@@ -626,7 +654,7 @@ def on_press(key):
             smap.show()
     
     if key == KeyCode(char='d') and store_open == True:
-        global rubble, rubble_lock, descend_price, descend_available, descend_started, depth_lock, depth, depth_text, bg_animation_thread
+        global rubble, rubble_lock, descend_price, descend_available, descend_started, depth_lock, depth_text, bg_animation_thread
         if rubble >= descend_price:
             if descend_started == False:
                 descend_started = True
@@ -822,7 +850,7 @@ def game_state():
     #Animations
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
-mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+mining_cart_animation_thread = None
 
     #Game State checker
 game_state_thread = threading.Thread(target=game_state, daemon=True)
