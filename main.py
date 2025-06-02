@@ -110,14 +110,17 @@ def load_game():
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
                 auto_miner_thread.start()
             if mining_cart_bought == True:
-                create_mining_cart(map, frame.width-35, frame.height-4)
-                mining_cart_price_text.rechar("ACTIVE!")
-                if auto_sell_thread is None or not auto_sell_thread.is_alive():
+                if mining_cart_state == True:
+                    create_mining_cart(map, frame.width-35, frame.height-4)
+                    mining_cart_price_text.rechar("ACTIVE!")
+                    build_ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
                     auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
                     auto_sell_thread.start()
-                if mining_cart_animation_thread is None or not mining_cart_animation_thread.is_alive():
                     mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
                     mining_cart_animation_thread.start()
+                else:
+                    mining_cart_price_text.rechar("INACTIVE")
+                    build_ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
  
             load_notification()
             return True
@@ -486,7 +489,7 @@ def auto_sell(): #Starts once the mining cart is bought and is active
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth
+    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -577,30 +580,36 @@ def on_press(key):
                 #Create mining cart
                 create_mining_cart(map, frame.width-35, frame.height-4)
                 mining_cart_price_text.rechar("ACTIVE!")
-                ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
+                build_ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
                 mining_cart_bought = True
-                mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
-                mining_cart_animation_thread.start()
+                if mining_cart_animation_thread is None or not mining_cart_animation_thread.is_alive():
+                    mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
+                    mining_cart_animation_thread.start()
+                if auto_sell_thread is None or not auto_sell_thread.is_alive():
+                        auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
+                        auto_sell_thread.start()
             
             if mining_cart_bought:
-                mining_cart_state = not mining_cart_state
-                if mining_cart_state:
-                    mining_cart_price_text.rechar("ACTIVE!")
+                if mining_cart_state == True:
+                    mining_cart_state = False
+                    mining_cart_price_text.rechar("INACTIVE")
+                    build_ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
+                    mining_cart_animation_thread = None
+                    auto_sell_thread = None
 
+                else:
+                    mining_cart_state = True
+                    mining_cart_price_text.rechar("ACTIVE!")
+                    build_ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
                     if mining_cart_animation_thread is None or not mining_cart_animation_thread.is_alive():
                         mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
                         mining_cart_animation_thread.start()
-                else:
-                    mining_cart_price_text.rechar("INACTIVE")
-                ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
+                    if auto_sell_thread is None or not auto_sell_thread.is_alive():
+                        auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
+                        auto_sell_thread.start()
+                    
                 smap.remap()
-                smap.show()
-
-            #Start auto-sell thread if mining cart is bought
-            global auto_sell_thread
-            if mining_cart_bought == True and mining_cart_state == True and auto_sell_thread is None or not auto_sell_thread.is_alive():
-                auto_sell_thread = threading.Thread(target=auto_sell, daemon=True)
-                auto_sell_thread.start()
+                smap.show()                    
         
         if key == KeyCode(char='2') and smelter_bought == False:
             if gold >= 50:
@@ -850,7 +859,7 @@ def game_state():
     #Animations
 hp_animation_thread = threading.Thread(target=hp_animation, daemon=True)
 drill_animation_thread = threading.Thread(target=drill_animation, daemon=True)
-mining_cart_animation_thread = None
+mining_cart_animation_thread = threading.Thread(target=mining_cart_animation, daemon=True)
 
     #Game State checker
 game_state_thread = threading.Thread(target=game_state, daemon=True)
