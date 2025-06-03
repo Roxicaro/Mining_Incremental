@@ -1,1 +1,5 @@
+##Instructions on how to build an EXE file##
+#Download the full source code
+#Navigate to the folder containing the source code using the Windows terminal
+#Run the code below
 pyinstaller --onefile --add-data "player_design.py;." --add-data "rock_design.py;." --add-data "command_list.py;." --add-data "ascii_designs.py;." main.py 
