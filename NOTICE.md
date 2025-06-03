@@ -4,8 +4,8 @@ This project uses these open-source components:
 ## Core Engine
 - **[scrap-engine](https://github.com/lxgr-linux/scrap-engine)**  
   *License:* [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0)  
-  *Usage:* Game rendering
-  *Modifications:* None (used as-is)
+  *Usage:* Game rendering  
+  *Modifications:* None  
 
 ## Input Handling
 - **[pynput](https://github.com/moses-palmer/pynput)**  
