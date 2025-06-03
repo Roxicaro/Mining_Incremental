@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Icaro Alves (Roxicaro)
+# This file is part of Mining Incremental, licensed under GPL-3.0.
+
 #ASCII Designs
 
 mining_cart_design = [
