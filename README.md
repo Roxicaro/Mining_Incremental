@@ -7,7 +7,7 @@ Basic terminal-based Incremental game project with ascii art-style.
   <img src="https://static.itch.io/images/badge.svg" alt="Play on itch.io" width="200">
 </a>  
 <br>
-<img src = "https://github.com/Roxicaro/Mining_Incremental/blob/main/PrintScreens/Print02.png"></img>
+<img src = "https://github.com/Roxicaro/Mining_Incremental/blob/main/PrintScreens/gameplay.gif"></img>
 
 ## 💻 Installation
 ```bash
