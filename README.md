@@ -1,6 +1,12 @@
-# Mining Incremental [![GPL-3.0 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+# Mining Incremental [![itch.io](https://img.shields.io/badge/Available_on-itch.io-FA5C5C?logo=itchdotio)](https://roxicaro.itch.io/mining-incremental) [![GPL-3.0 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE) ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/roxicaro/Mining_Incremental) 
+
 Basic terminal-based Incremental game project with ascii art-style. 
-<br><br>
+- **Report bugs**: [GitHub Issues](https://github.com/Roxicaro/Mining_Incremental/issues)  
+- **Suggest features**: Comment on [itch.io](https://roxicaro.itch.io/mining-incremental)  <br>
+<a href="https://roxicaro.itch.io/mining-incremental">
+  <img src="https://static.itch.io/images/badge.svg" alt="Play on itch.io" width="200">
+</a>  
+<br>
 <img src = "https://github.com/Roxicaro/Mining_Incremental/blob/main/PrintScreens/Print02.png"></img>
 
 ## 💻 Installation
