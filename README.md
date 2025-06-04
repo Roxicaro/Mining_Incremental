@@ -31,7 +31,7 @@ This game is **open-source** under the [GPL-3.0 License](LICENSE).
 - 📝 See [NOTICE.md](NOTICE.md) for third-party credits
 
 ### Third-Party Dependencies
-- [scrap-engine](https://github.com/lxgr-linux/scrap-engine) (GPL-3.0)
+- [scrap-engine](https://github.com/lxgr-linux/scrap_engine) (GPL-3.0)
 
 **Copyright** © 2025 Icaro Alves ([@Roxicaro](https://github.com/Roxicaro))
 
