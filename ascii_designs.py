@@ -2,6 +2,23 @@
 # This file is part of Mining Incremental, licensed under GPL-3.0.
 
 #ASCII Designs
+# Player object
+mining_drill_design = r'''
+╔╦╦╗
+╠╬╬╣
+╚╩╩╝
+'''
+#Alternative art 1
+'''
+▄██▄
+█▓▓█
+▀██▀
+'''
+#Alternative art 2
+'''
+██►
+'''
+
 mining_cart_design = [
     # Row 0 (top) - "╭─────╮"
     ('╭', 0, 0), ('─', 1, 0), ('─', 2, 0),('─', 3, 0),('─', 4, 0),('─', 5, 0),('╮', 6, 0),
@@ -126,3 +143,4 @@ background_top = ascii_converter(background_top_design, "\033[38;5;236m")
 background_bottom = ascii_converter(background_bottom_design, "\033[38;5;236m")
 smelter = ascii_converter(smelter_design)
 rock = ascii_converter(rock_design)
+mining_drill = ascii_converter(mining_drill_design)
