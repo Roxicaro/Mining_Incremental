@@ -86,9 +86,28 @@ background_bottom_design = r'''
 smelter_design= r'''
 ╔═══╗
 ║███║
-║▓▓▓║
+║▓▓▓║  [H]eat
 ╚═▲═╝
 '''
+smelter_gradient = [
+    "\033[38;2;128;128;128m",   # 1. Cold Gray (Off)
+    "\033[38;2;140;140;140m",   # 2. Warm Gray
+    "\033[38;2;139;0;0m",       # 3. Dark Red (First Glow)
+    "\033[38;2;178;34;34m",     # 4. Medium Red (Heating)
+    "\033[38;2;205;92;92m",     # 5. Brick Red
+    "\033[38;2;255;0;0m",       # 6. Red
+    "\033[38;2;255;51;51m",     # 7. Bright Red
+    "\033[38;2;255;80;80m",     # 8. Hot Red
+    "\033[38;2;255;99;71m",     # 9. Orange-Red
+    "\033[38;2;255;127;80m",    # 10. Orange
+    "\033[38;2;255;140;0m",     # 11. Bright Orange
+    "\033[38;2;255;165;0m",     # 12. Yellow-Orange
+    "\033[38;2;255;255;0m",     # 13. Yellow
+    "\033[38;2;255;255;153m",   # 14. White-Yellow (Very Hot)
+    "\033[38;2;255;221;187m",   # 15. White-Orange (Extreme Heat)
+    "\033[38;2;255;255;255m"    # 16. White (Melting Hot)
+]
+
 
 #Rock design
 rock_design = r'''
@@ -141,6 +160,6 @@ def ascii_converter(input, color="\033[0m"):
 
 background_top = ascii_converter(background_top_design, "\033[38;5;236m")
 background_bottom = ascii_converter(background_bottom_design, "\033[38;5;236m")
-smelter = ascii_converter(smelter_design)
+smelter = ascii_converter(smelter_design, "\033[38;2;128;128;128m")
 rock = ascii_converter(rock_design)
 mining_drill = ascii_converter(mining_drill_design)
