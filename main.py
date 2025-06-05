@@ -304,10 +304,10 @@ depth_text = se.Text(f'> Depth: {depth} <', float)
 '''test_text = se.Text(f'\033[31;1;4mTESTING COLORS\033[0m', float)
 test_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 2)'''
 
-# Player design data
-from player_design import PLAYER_DESIGN  # Import player design data
+# Player/Mining drill design data
+from ascii_designs import mining_drill  # Import player design data
 def create_player(map, start_x=4, start_y=5):
-    for char, rel_x, rel_y in PLAYER_DESIGN:
+    for char, rel_x, rel_y in mining_drill:
         se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
 
 #Background
@@ -385,11 +385,11 @@ def color_smelter(color='\033[0m'):
 
 
 # Rock design data
-from rock_design import ROCK_DESIGN  # Import rock design data
+from ascii_designs import rock  # Import rock design data
 rock_parts = []  # List to store rock parts
 def create_rock(map, start_x=24, start_y=5):
     global rock_parts
-    for char, rel_x, rel_y in ROCK_DESIGN:
+    for char, rel_x, rel_y in rock:
         obj = se.Object(char,float)
         obj.add(map, start_x + rel_x, start_y + rel_y)
         rock_parts.append(obj)
