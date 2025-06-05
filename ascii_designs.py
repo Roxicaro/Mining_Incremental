@@ -2,7 +2,6 @@
 # This file is part of Mining Incremental, licensed under GPL-3.0.
 
 #ASCII Designs
-
 mining_cart_design = [
     # Row 0 (top) - "╭─────╮"
     ('╭', 0, 0), ('─', 1, 0), ('─', 2, 0),('─', 3, 0),('─', 4, 0),('─', 5, 0),('╮', 6, 0),
@@ -74,6 +73,45 @@ smelter_design= r'''
 ╚═▲═╝
 '''
 
+#Rock design
+rock_design = r'''
+    ___
+  _/__/\
+ / \  \ \
+ \__\__\/
+'''
+
+#Large rock design
+'''
+         __________
+   _____/_____ \__/\
+  /     \      \  \ \
+ /      \      \  \  \
+/       \      \  \   \
+\_______\______\___\__/
+'''
+
+'''
+Rock HP and different types of rock
+Stone
+Copper Ore
+Iron Ore
+Gold Vein
+Diamond Cluster
+Mithril Chunk
+Coal Seam
+
+ █ (filled)
+ ░ (empty)
+ 
+ Alternatives:
+ |■■■■■■□□□□| 50%
+ ■ (filled)
+ □ (empty)
+ ▰▰▰▰▱▱
+ '''
+
+
 def ascii_converter(input, color="\033[0m"):
     output = []
     lines = input.strip('\n').split('\n')
@@ -87,3 +125,4 @@ def ascii_converter(input, color="\033[0m"):
 background_top = ascii_converter(background_top_design, "\033[38;5;236m")
 background_bottom = ascii_converter(background_bottom_design, "\033[38;5;236m")
 smelter = ascii_converter(smelter_design)
+rock = ascii_converter(rock_design)
