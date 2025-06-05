@@ -170,6 +170,9 @@ rubble_lock = Lock()
 coal = int(0)
 coal_lock = Lock()
 
+temperature = 25
+#Target temperature 1370°C to 1530°C
+
 #Function for resource chance
 def resource_chance(top_range=10):
     roll = random.randrange(0, top_range)
@@ -296,6 +299,8 @@ rubble_text.add(map,3,3)
 
 coal_text=se.Text(f'', float)
 coal_text.add(map,3,4)
+
+temperature_text = se.Text(f'{temperature}°C', float)
 
     #Depth counter text
 depth_text = se.Text(f'> Depth: {depth} <', float)
@@ -489,10 +494,11 @@ def auto_sell(): #Starts once the mining cart is bought and is active
             break
         time.sleep(0.1)
 
+##################### KEYBOARD #####################
 # Keyboard control
 space_pressed = False
 def on_press(key):
-    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth
+    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth, temperature, temperature_text
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
         space_pressed = True
@@ -621,12 +627,55 @@ def on_press(key):
                     gold_text.rechar(f'Gold: {int(gold):<7}')
                 #Create smelter
                 create_smelter(map, 5, frame.height-5)
+                temperature_text.add(map, 12, frame.height-4)
                 smelter_text.remove()
                 smelter_price_text.remove()
                 smelter_bought = True
                 smap.remap()
                 smap.show()
     
+    #Temperature
+    if key == KeyCode(char='h') and smelter_bought == True:
+        from ascii_designs import smelter_gradient
+        if temperature < 3000:
+            temperature += 11.1
+            if temperature < 185:
+                color_smelter(smelter_gradient[0])
+            if temperature >= 185 and temperature < 370:
+                color_smelter(smelter_gradient[1])
+            if temperature >= 370 and temperature < 555:
+                color_smelter(smelter_gradient[2])
+            if temperature >= 555 and temperature < 740:
+                color_smelter(smelter_gradient[3])
+            if temperature >= 740 and temperature < 925:
+                color_smelter(smelter_gradient[4])
+            if temperature >= 925 and temperature < 1110:
+                color_smelter(smelter_gradient[5])
+            if temperature >= 1110 and temperature < 1295:
+                color_smelter(smelter_gradient[6])
+            if temperature >= 1295 and temperature < 1480:
+                color_smelter(smelter_gradient[7])
+            if temperature >= 1480 and temperature < 1665:
+                color_smelter(smelter_gradient[8])
+            if temperature >= 1665 and temperature < 1850:
+                color_smelter(smelter_gradient[9])
+            if temperature >= 1850 and temperature < 2035:
+                color_smelter(smelter_gradient[10])
+            if temperature >= 2035 and temperature < 2220:
+                color_smelter(smelter_gradient[11])
+            if temperature >= 2220 and temperature < 2405:
+                color_smelter(smelter_gradient[12])
+            if temperature >= 2405 and temperature < 2590:
+                color_smelter(smelter_gradient[13])
+            if temperature >= 2590 and temperature < 2775:
+                color_smelter(smelter_gradient[14])
+            if temperature >= 2775 and temperature < 2960:
+                color_smelter(smelter_gradient[15])
+            if temperature >= 2960 and temperature:
+                color_smelter(smelter_gradient[16])
+        temperature_text.rechar(f'{temperature:.1f}°C')
+
+
     #Store actions
     if key == KeyCode(char='a') and store_open == True:
         global auto_miner_price, auto_miner_price_increase, drill_power_price, drill_power_price_increase, auto_mine_level, auto_mine_cd
@@ -901,6 +950,10 @@ try:
                 rubble += 1
                 rubble_text.add(map,3,3)
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
+        
+        if smelter_bought == True and temperature > 25:
+            temperature -= 0.1
+            temperature_text.rechar(f'{temperature:.1f}°C')
         '''#TESTING COLORS
         for i in range(30,38):
             test_text.rechar(f'\033[{i};1;4mTESTING COLORS {i}\033[0m')
