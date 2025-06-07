@@ -385,6 +385,44 @@ def color_smelter(color='\033[0m'):
     smap.remap()
     smap.show()
 
+#Update smelter color
+def update_smelter_color():
+    global temperature, smelter_parts
+    from ascii_designs import smelter_gradient
+    if temperature < 185:
+        color_smelter(smelter_gradient[0])
+    elif temperature >= 185 and temperature < 370:
+        color_smelter(smelter_gradient[1])
+    elif temperature >= 370 and temperature < 555:
+        color_smelter(smelter_gradient[2])
+    elif temperature >= 555 and temperature < 740:
+        color_smelter(smelter_gradient[3])
+    elif temperature >= 740 and temperature < 925:
+        color_smelter(smelter_gradient[4])
+    elif temperature >= 925 and temperature < 1110:
+        color_smelter(smelter_gradient[5])
+    elif temperature >= 1110 and temperature < 1295:
+        color_smelter(smelter_gradient[6])
+    elif temperature >= 1295 and temperature < 1480:
+        color_smelter(smelter_gradient[7])
+    elif temperature >= 1480 and temperature < 1665:
+        color_smelter(smelter_gradient[8])
+    elif temperature >= 1665 and temperature < 1850:
+        color_smelter(smelter_gradient[9])
+    elif temperature >= 1850 and temperature < 2035:
+        color_smelter(smelter_gradient[10])
+    elif temperature >= 2035 and temperature < 2220:
+        color_smelter(smelter_gradient[11])
+    elif temperature >= 2220 and temperature < 2405:
+        color_smelter(smelter_gradient[12])
+    elif temperature >= 2405 and temperature < 2590:
+        color_smelter(smelter_gradient[13])
+    elif temperature >= 2590 and temperature < 2775:
+        color_smelter(smelter_gradient[14])
+    elif temperature >= 2775 and temperature < 2960:
+        color_smelter(smelter_gradient[15])
+
+
 #create_smelter(map)
 #color_smelter('\033[38;5;9m')
 
@@ -497,6 +535,8 @@ def auto_sell(): #Starts once the mining cart is bought and is active
 ##################### KEYBOARD #####################
 # Keyboard control
 space_pressed = False
+h_pressed = False
+
 def on_press(key):
     global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth, temperature, temperature_text
     from command_list import command_list, spacer
@@ -635,44 +675,17 @@ def on_press(key):
                 smap.show()
     
     #Temperature
-    if key == KeyCode(char='h') and smelter_bought == True:
+    global h_pressed
+    if key == KeyCode(char='h') and smelter_bought == True and h_pressed == False:
+        h_pressed = True
         from ascii_designs import smelter_gradient
-        if temperature < 3000:
-            temperature += 11.1
-            if temperature < 185:
-                color_smelter(smelter_gradient[0])
-            if temperature >= 185 and temperature < 370:
-                color_smelter(smelter_gradient[1])
-            if temperature >= 370 and temperature < 555:
-                color_smelter(smelter_gradient[2])
-            if temperature >= 555 and temperature < 740:
-                color_smelter(smelter_gradient[3])
-            if temperature >= 740 and temperature < 925:
-                color_smelter(smelter_gradient[4])
-            if temperature >= 925 and temperature < 1110:
-                color_smelter(smelter_gradient[5])
-            if temperature >= 1110 and temperature < 1295:
-                color_smelter(smelter_gradient[6])
-            if temperature >= 1295 and temperature < 1480:
-                color_smelter(smelter_gradient[7])
-            if temperature >= 1480 and temperature < 1665:
-                color_smelter(smelter_gradient[8])
-            if temperature >= 1665 and temperature < 1850:
-                color_smelter(smelter_gradient[9])
-            if temperature >= 1850 and temperature < 2035:
-                color_smelter(smelter_gradient[10])
-            if temperature >= 2035 and temperature < 2220:
-                color_smelter(smelter_gradient[11])
-            if temperature >= 2220 and temperature < 2405:
-                color_smelter(smelter_gradient[12])
-            if temperature >= 2405 and temperature < 2590:
-                color_smelter(smelter_gradient[13])
-            if temperature >= 2590 and temperature < 2775:
-                color_smelter(smelter_gradient[14])
-            if temperature >= 2775 and temperature < 2960:
-                color_smelter(smelter_gradient[15])
-            if temperature >= 2960 and temperature:
-                color_smelter(smelter_gradient[16])
+        if temperature < 3500:
+            with coal_lock:
+                if coal > 0:
+                    coal -= 1
+                    coal_text.rechar(f'Coal: {int(coal)}')
+                    temperature += 500
+                    update_smelter_color()
         temperature_text.rechar(f'{temperature:.1f}°C')
 
 
@@ -766,9 +779,11 @@ def on_press(key):
             sparks_animation_thread.start()'''
 
 def on_release(key):
-    global space_pressed
+    global space_pressed, h_pressed
     if key == Key.space:
         space_pressed = False #This prevents the drill from being spammed when holding space
+    if key == KeyCode(char='h'):
+        h_pressed = False #This prevents the smelter from being spammed when holding 'h'
 
 
 # Start keyboard listener in a daemon thread
@@ -952,7 +967,7 @@ try:
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
         
         if smelter_bought == True and temperature > 25:
-            temperature -= 0.1
+            temperature -= 5.1
             temperature_text.rechar(f'{temperature:.1f}°C')
         '''#TESTING COLORS
         for i in range(30,38):
