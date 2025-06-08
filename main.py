@@ -43,17 +43,20 @@ def save_game():
         f.write(f"{depth}\n")
         f.write(f"{mining_cart_bought}\n")
         f.write(f"{mining_cart_state}\n")
-        f.write(f"{build_can_open}")
+        f.write(f"{build_can_open}\n")
+        f.write(f"{coal}\n")
+        f.write(f"{smelter_bought}\n")
+        f.write(f"{steel}")
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
     from command_list import spacer
-    global iron, gold, rubble, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open, mining_cart_state  
+    global iron, gold, rubble, coal, steel, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open, mining_cart_state, smelter_bought  
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 18:
+            if len(lines) < 21:
                 print("Save file corrupted")
                 return False
                 
@@ -75,7 +78,10 @@ def load_game():
             depth = int(lines[14].strip())
             mining_cart_bought = lines[15].strip().lower() == 'true'
             mining_cart_state = lines[16].strip().lower() == 'true'
-            build_can_open = lines[17].strip().lower() == 'true'  
+            build_can_open = lines[17].strip().lower() == 'true'
+            coal = int(lines[18].strip())  
+            smelter_bought = lines[19].strip().lower() == 'true'
+            steel = int(lines[20].strip())
             
             # Update UI
             iron_text.remove()
@@ -91,6 +97,12 @@ def load_game():
             if rubble > 0:
                 rubble_text.add(map,iron_text.x,iron_text.y+2)
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
+            if coal > 0:
+                coal_text.add(map, iron_text.x, iron_text.y+3)
+                coal_text.rechar(f'Coal: {int(coal)}')
+            if steel > 0:
+                steel_text.add(map, iron_text.x, iron_text.y+4)
+                steel_text.rechar(f'Steel: {int(steel)}')
             if auto_mine_level > 0:
                 auto_mine.rechar(f"[A]uto-mine ({auto_mine_level})")
             auto_mine_price.rechar(f"{int(auto_miner_price)} Gold")
@@ -124,7 +136,16 @@ def load_game():
                 else:
                     mining_cart_price_text.rechar("INACTIVE")
                     build_ui_box.set_ob(mining_cart_price_text, menu_ui.width - len(mining_cart_price_text.text)-1, 2)
- 
+            
+            if smelter_bought == True:
+                create_smelter(map, 5, frame.height-5)
+                temperature_text.add(map, 12, frame.height-4)
+                smelter_text.remove()
+                smelter_price_text.remove()
+                update_smelter_color() 
+            
+            smap.remap()
+            smap.show()               
             load_notification()
             return True
             
@@ -169,6 +190,9 @@ rubble_lock = Lock()
 
 coal = int(0)
 coal_lock = Lock()
+
+steel = int(0)
+steel_lock = Lock()
 
 temperature = 25
 #Target temperature 1370°C to 1530°C
@@ -299,6 +323,9 @@ rubble_text.add(map,3,3)
 
 coal_text=se.Text(f'', float)
 coal_text.add(map,3,4)
+
+steel_text=se.Text(f'', float)
+steel_text.add(map,3,5)
 
 temperature_text = se.Text(f'{temperature}°C', float)
 
@@ -507,7 +534,7 @@ def iron_counter():
             damage += 1
         with hp_lock:
             hp -= 1
-        if depth > 0 and resource_chance(100) == 0:
+        if depth > 0 and resource_chance(200) == 0:
             with coal_lock:
                 coal += 1
                 coal_text.rechar(f"Coal: {coal}")
@@ -761,7 +788,7 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    if key == KeyCode(char='w'):
+    '''if key == KeyCode(char='w'):
         with iron_lock:
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
@@ -770,7 +797,7 @@ def on_press(key):
             gold_text.rechar(f'Gold: {gold}')
         with rubble_lock:
             rubble += 1000
-            rubble_text.rechar(f'Rubble: {rubble}')
+            rubble_text.rechar(f'Rubble: {rubble}')'''
     
     '''if key == KeyCode(char='7'):
         global sparks_animation_thread
@@ -969,10 +996,15 @@ try:
         if smelter_bought == True and temperature > 25:
             temperature -= 5.1
             temperature_text.rechar(f'{temperature:.1f}°C')
-        '''#TESTING COLORS
-        for i in range(30,38):
-            test_text.rechar(f'\033[{i};1;4mTESTING COLORS {i}\033[0m')
-            time.sleep(0.1)'''
+            update_smelter_color()
+            #Target temperature 1370°C to 1530°C
+            if temperature >= 1370 and temperature <= 1530 and iron > 200:
+                with iron_lock:
+                    iron -= 200
+                    iron_text.rechar(f'Iron: {int(iron)}')
+                with steel_lock:
+                    steel += 1
+                    steel_text.rechar(f'Steel: {int(steel)}')
         smap.remap()
         smap.show()
         time.sleep(0.1)
