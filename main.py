@@ -140,8 +140,8 @@ def load_game():
             if smelter_bought == True:
                 create_smelter(map, 5, frame.height-5)
                 temperature_text.add(map, 12, frame.height-4)
-                smelter_text.remove()
-                smelter_price_text.remove()
+                smelter_text.rechar('')
+                smelter_price_text.rechar('')
                 update_smelter_color() 
             
             smap.remap()
@@ -634,7 +634,11 @@ def on_press(key):
                 smap.show()
     
     #Opens and closes Store
-    if key == KeyCode(char='e') and store_can_open == True and build_open == False: 
+    if key == KeyCode(char='e') and store_can_open: 
+        if build_open and build_can_open:
+            build_open = False
+            build_ui_box.remove()
+
         if store_open == False:
             ui_box.add(map, ui_center_x, ui_center_y)
             store_open = True
@@ -646,6 +650,10 @@ def on_press(key):
     
     #Opens and closes Build UI
     if key == KeyCode(char='t'): 
+        if store_open and build_can_open:
+            store_open = False
+            ui_box.remove()
+
         if build_open == False and build_can_open == True and store_open == False:
             build_ui_box.add(map, ui_center_x, ui_center_y)
             build_open = True
@@ -703,8 +711,8 @@ def on_press(key):
                 #Create smelter
                 create_smelter(map, 5, frame.height-5)
                 temperature_text.add(map, 12, frame.height-4)
-                smelter_text.remove()
-                smelter_price_text.remove()
+                smelter_text.rechar('')
+                smelter_price_text.rechar('')
                 smelter_bought = True
                 smap.remap()
                 smap.show()
