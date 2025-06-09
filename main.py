@@ -318,6 +318,14 @@ iron_text.add(map,3,1)
 gold_text=se.Text(f'', float)
 gold_text.add(map, iron_text.x, iron_text.y+1)
 
+def update_gold_text():
+    global gold, gold_text
+    gold_text.remove()
+    gold_text.rechar(f'Gold: {int(gold):<7}')  # Update gold text with left alignment
+    gold_text.add(map, iron_text.x, iron_text.y+1)
+
+
+
 rubble_text=se.Text(f'', float)
 rubble_text.add(map,3,3)
 
@@ -652,7 +660,7 @@ def on_press(key):
             if gold >= 10 and mining_cart_bought == False:
                 with gold_lock:
                     gold -= 10
-                    gold_text.rechar(f'Gold: {int(gold):<7}')
+                    update_gold_text()
                 #Create mining cart
                 create_mining_cart(map, frame.width-35, frame.height-4)
                 mining_cart_price_text.rechar("ACTIVE!")
@@ -691,7 +699,7 @@ def on_press(key):
             if gold >= 50:
                 with gold_lock:
                     gold -= 50
-                    gold_text.rechar(f'Gold: {int(gold):<7}')
+                    update_gold_text()
                 #Create smelter
                 create_smelter(map, 5, frame.height-5)
                 temperature_text.add(map, 12, frame.height-4)
@@ -722,7 +730,7 @@ def on_press(key):
         if gold >= auto_miner_price:
             with gold_lock:
                 gold -= auto_miner_price
-                gold_text.rechar(f'Gold: {int(gold):<7}')             
+                update_gold_text()             
             auto_miner = True
             auto_miner_price = auto_miner_price * auto_miner_price_increase
             auto_mine_level += 1
@@ -745,7 +753,7 @@ def on_press(key):
         if gold >= drill_power_price:
             with gold_lock:
                 gold -= drill_power_price
-                gold_text.rechar(f'Gold: {int(gold):<7}')
+                update_gold_text()
                 drill_power += 1
                 drill_power_price = drill_power_price * drill_power_price_increase
             better_drill.rechar(f"[B]etter drill ({drill_power})")
@@ -793,7 +801,7 @@ def on_press(key):
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
         with gold_lock:
-            gold += 100000
+            gold += 1000
             gold_text.rechar(f'Gold: {gold}')
         with rubble_lock:
             rubble += 1000
