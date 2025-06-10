@@ -346,7 +346,7 @@ test_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 2)'''
 
 # Player/Mining drill design data
 from ascii_designs import mining_drill  # Import player design data
-def create_player(map, start_x=4, start_y=5):
+def create_player(map, start_x=5, start_y=5):
     for char, rel_x, rel_y in mining_drill:
         se.Object(char).add(map, start_x + rel_x, start_y + rel_y)
 
@@ -517,15 +517,15 @@ empty = '□'
 hp_bar = se.Text(f'[■■■■■■■■■■]', float)
 
 # Create the player at the specified position
-create_player(map, frame.width-16, frame.height-4)  # Creates entire drill at (5,5)
+create_player(map, frame.width-15, frame.height-4)  # Creates entire drill at (5,5)
 
 # Create and place drill
 drill_state = '►'  # Initial state of the drill
 drill = se.Object(drill_state)
-drill.add(map, frame.width-12, frame.height-3)
+drill.add(map, frame.width-11, frame.height-3)
 
 # Place the rock at the specified position:
-create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)
+create_rock(map, frame.width-10, frame.height-5)  # Creates rock at (10,3)  
 
 smap.show(init=True)
 smap.set(smap.x, smap.y)
@@ -839,7 +839,7 @@ keyboard_thread.start()
 
 
 #Refresh UI
-def refresh_variables():
+def refresh_ui():
     with iron_lock:
         iron_text.rechar(f'Iron: {int(iron)}')
     with gold_lock:
@@ -848,6 +848,17 @@ def refresh_variables():
         rubble_text.rechar(f'Rubble: {int(rubble)}')
     with depth_lock:
         depth_text.rechar(f'> Depth: {depth} <')
+    if coal_text.text != '':
+        with coal_lock:
+            coal_text.rechar(f'Coal: {int(coal)}')
+    if steel_text.text != '':
+        with steel_lock:
+            steel_text.rechar(f'Steel: {int(steel)}')
+    remove_rock()
+    create_rock(map, frame.width-10, frame.height-5)
+    if smelter_bought:
+        remove_smelter()
+        create_smelter(map, 5, frame.height-5)
     smap.remap()
     smap.show()
 
@@ -862,7 +873,7 @@ def bg_animation():
             remove_bg_bottom()
             create_bg_top(map, move_pos)
             create_bg_bottom(map, move_pos)
-            refresh_variables()
+            refresh_ui()
             move_pos -= 1
         else:
             break
@@ -875,9 +886,9 @@ def sparks_animation():
     global running
     while running:
         spark_1 = se.Object(random.choice(sparks), "float")
-        spark_1.add(map, drill.x, drill.y-1)
+        spark_1.add(map, drill.x+1, drill.y-1)
         spark_2 = se.Object(random.choice(sparks), "float")
-        spark_2.add(map, drill.x+1, drill.y-2)
+        spark_2.add(map, drill.x+2, drill.y-2)
         spark_3 = se.Object(random.choice(sparks), "float")
         spark_3.add(map, drill.x-1, drill.y-2)
         smap.remap()
