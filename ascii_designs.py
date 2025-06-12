@@ -179,6 +179,15 @@ Coal Seam
 
 '''
 
+spark_tajectory_1 = r'''
+                .-,
+             _/'   `.
+           ,'        \
+          /           '
+        ,'            '
+_,,..-'
+'''
+
 
 def ascii_converter(input, color="\033[0m"):
     output = []
@@ -195,3 +204,4 @@ background_bottom = ascii_converter(background_bottom_design, "\033[38;5;236m")
 smelter = ascii_converter(smelter_design, "\033[38;2;128;128;128m")
 rock = ascii_converter(rock_design)
 mining_drill = ascii_converter(mining_drill_design)
+spark_1 = ascii_converter(spark_tajectory_1, "\033[38;5;226m")
