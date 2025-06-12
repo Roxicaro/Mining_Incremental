@@ -815,11 +815,11 @@ def on_press(key):
             rubble += 1000
             rubble_text.rechar(f'Rubble: {rubble}')'''
     
-    '''if key == KeyCode(char='7'):
+    if key == KeyCode(char='7'):
         global sparks_animation_thread
         if sparks_animation_thread is None or not sparks_animation_thread.is_alive():
             sparks_animation_thread = threading.Thread(target=sparks_animation, daemon=True)
-            sparks_animation_thread.start()'''
+            sparks_animation_thread.start()
 
 def on_release(key):
     global space_pressed, h_pressed
@@ -881,22 +881,19 @@ def bg_animation():
     
 
 #Sparks animation
-'''sparks = [".", ",", "'", "`", "·", "ˊ"]
+sparks = []
 def sparks_animation():
-    global running
-    while running:
-        spark_1 = se.Object(random.choice(sparks), "float")
-        spark_1.add(map, drill.x+1, drill.y-1)
-        spark_2 = se.Object(random.choice(sparks), "float")
-        spark_2.add(map, drill.x+2, drill.y-2)
-        spark_3 = se.Object(random.choice(sparks), "float")
-        spark_3.add(map, drill.x-1, drill.y-2)
-        smap.remap()
-        smap.show()
+    from ascii_designs import spark_1
+    global sparks
+    for char, rel_x, rel_y in spark_1:
+        obj = se.Object(char, float)
+        obj.add(map, frame.width-32 + rel_x, frame.height-7 + rel_y)
+        sparks.append(obj)
         time.sleep(0.05)
-        spark_1.remove()
-        spark_2.remove()
-        spark_3.remove()'''
+        obj.remove()
+    return sparks
+
+
 
 #Drill animation function
 def drill_animation():
