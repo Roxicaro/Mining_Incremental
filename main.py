@@ -889,8 +889,9 @@ def sparks_animation():
         obj = se.Object(char, float)
         obj.add(map, frame.width-32 + rel_x, frame.height-7 + rel_y)
         sparks.append(obj)
-        time.sleep(0.05)
+        time.sleep(0.04)
         obj.remove()
+    sparks_animation()
     return sparks
 
 
