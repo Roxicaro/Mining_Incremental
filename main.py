@@ -732,7 +732,11 @@ def on_press(key):
                     coal_text.rechar(f'Coal: {int(coal)}')
                     temperature += 500
                     update_smelter_color()
-        temperature_text.rechar(f'{temperature:.1f}°C')
+        if temperature >= 1370 and temperature <= 1530:
+            temperature_text.rechar('\033[32m'f'{temperature:.1f}°C''\033[0m')
+        else:
+            temperature_text.rechar(f'{temperature:.1f}°C')
+
 
 
     #Store actions
@@ -1020,7 +1024,10 @@ try:
         
         if smelter_bought == True and temperature > 25:
             temperature -= 5.1
-            temperature_text.rechar(f'{temperature:.1f}°C')
+            if temperature >= 1370 and temperature <= 1530:
+                temperature_text.rechar('\033[32m'f'{temperature:.1f}°C''\033[0m')
+            else:
+                temperature_text.rechar(f'{temperature:.1f}°C')
             update_smelter_color()
             #Target temperature 1370°C to 1530°C
             if temperature >= 1370 and temperature <= 1530 and iron > 200:
