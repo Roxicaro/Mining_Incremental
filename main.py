@@ -213,7 +213,10 @@ mining_cart_state = False
 smelter_bought = False #Smelter bought state
 auto_sell_thread = None #Auto-sell thread
 bg_animation_thread = None
-sparks_animation_thread = None
+sparks_animation_thread_1 = None
+sparks_animation_thread_2 = None
+sparks_animation_thread_3 = None
+sparks_animation_thread_4 = None
 
 #Auto miner
 auto_miner = False #Auto miner
@@ -816,10 +819,10 @@ def on_press(key):
             rubble_text.rechar(f'Rubble: {rubble}')'''
     
     if key == KeyCode(char='7'):
-        global sparks_animation_thread
-        if sparks_animation_thread is None or not sparks_animation_thread.is_alive():
-            sparks_animation_thread = threading.Thread(target=sparks_animation, daemon=True)
-            sparks_animation_thread.start()
+        global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
+        if sparks_animation_thread_1 is None or not sparks_animation_thread_1.is_alive():
+            sparks_animation_thread_1 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 32, 7, 0.04))
+            sparks_animation_thread_1.start()
 
 def on_release(key):
     global space_pressed, h_pressed
@@ -879,22 +882,19 @@ def bg_animation():
             break
         time.sleep(0.03)
     
-
 #Sparks animation
 sparks = []
-def sparks_animation():
-    from ascii_designs import spark_1
+from ascii_designs import spark_1
+def sparks_animation_1(template=spark_1, x=32, y=7, delay=0.04):
     global sparks
-    for char, rel_x, rel_y in spark_1:
+    for char, rel_x, rel_y in template:
         obj = se.Object(char, float)
-        obj.add(map, frame.width-32 + rel_x, frame.height-7 + rel_y)
+        obj.add(map, (frame.width-x) + rel_x, (frame.height-y) + rel_y)
         sparks.append(obj)
-        time.sleep(0.04)
+        time.sleep(delay)
         obj.remove()
-    sparks_animation()
+    sparks_animation_1()
     return sparks
-
-
 
 #Drill animation function
 def drill_animation():
