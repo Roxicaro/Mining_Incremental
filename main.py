@@ -212,6 +212,7 @@ mining_cart_bought = False #Mining cart bought state
 mining_cart_state = False
 smelter_bought = False #Smelter bought state
 auto_sell_thread = None #Auto-sell thread
+explosion_animation_thread = None
 bg_animation_thread = None
 sparks_animation_thread_1 = None
 sparks_animation_thread_2 = None
@@ -733,7 +734,7 @@ def on_press(key):
                     temperature += 500
                     update_smelter_color()
         if temperature >= 1370 and temperature <= 1530:
-            temperature_text.rechar('\033[32m'f'{temperature:.1f}°C''\033[0m')
+            temperature_text.rechar(f'{temperature:.1f}°C  ␥(Steel)')
         else:
             temperature_text.rechar(f'{temperature:.1f}°C')
 
@@ -1016,7 +1017,9 @@ try:
                 ui_box.set_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_price.text)-1, 4)
             max_hp = 1000 + int(100 * depth)
             hp = max_hp         
-            explosion_animation()
+            if explosion_animation_thread is None or not explosion_animation_thread.is_alive():
+                explosion_animation_thread = threading.Thread(target=explosion_animation, daemon=True)
+                explosion_animation_thread.start()
             with rubble_lock:
                 rubble += 1
                 rubble_text.add(map,3,3)
@@ -1025,7 +1028,7 @@ try:
         if smelter_bought == True and temperature > 25:
             temperature -= 5.1
             if temperature >= 1370 and temperature <= 1530:
-                temperature_text.rechar('\033[32m'f'{temperature:.1f}°C''\033[0m')
+                temperature_text.rechar(f'{temperature:.1f}°C  ␥(Steel)')
             else:
                 temperature_text.rechar(f'{temperature:.1f}°C')
             update_smelter_color()
