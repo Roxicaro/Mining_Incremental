@@ -179,13 +179,21 @@ Coal Seam
 
 '''
 
-spark_tajectory_1 = r'''
+spark_trajectory_1 = r'''
                 .-,
              _/'   `.
            ,'        \
           /           '
         ,'            '
 _,,..-'
+'''
+spark_trajectory_2 = r'''
+                  ,.._
+                 .    .
+               ,'      `.
+       ___    /         `.
+  ___ ,' '`. ,|           '
+-'   `'     ''
 '''
 
 def sorting(list):
@@ -209,5 +217,7 @@ background_bottom = ascii_converter(background_bottom_design, "\033[38;5;236m")
 smelter = ascii_converter(smelter_design, "\033[38;2;128;128;128m")
 rock = ascii_converter(rock_design)
 mining_drill = ascii_converter(mining_drill_design)
-spark_1_ = ascii_converter(spark_tajectory_1, "\033[38;5;226m")
+spark_1_ = ascii_converter(spark_trajectory_1, "\033[38;5;226m")
 spark_1 = sorting(spark_1_)
+spark_2 = ascii_converter(spark_trajectory_2, "\033[38;5;226m")
+spark_2 = sorting(spark_2)

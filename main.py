@@ -480,8 +480,22 @@ def update_smelter_color():
         color_smelter(smelter_gradient[15])
 
 
-#create_smelter(map)
-#color_smelter('\033[38;5;9m')
+#Sparks
+def create_sparks():
+    global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
+    if sparks_animation_thread_1 is None or not sparks_animation_thread_1.is_alive():
+        sparks_animation_thread_1 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 32, 7, 0.04))
+        sparks_animation_thread_1.start()
+    if sparks_animation_thread_2 is None or not sparks_animation_thread_2.is_alive():
+        sparks_animation_thread_2 = threading.Thread(target=sparks_animation_2, daemon=True, args=(spark_2, 32, 8, 0.04))
+        sparks_animation_thread_2.start()
+    if sparks_animation_thread_3 is None or not sparks_animation_thread_3.is_alive():
+        sparks_animation_thread_3 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_2, 30, 6, 0.04))
+        sparks_animation_thread_3.start()
+    if sparks_animation_thread_4 is None or not sparks_animation_thread_4.is_alive():
+        sparks_animation_thread_4 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 33, 7, 0.04))
+        sparks_animation_thread_4.start()
+
 
 
 # Rock design data
@@ -851,10 +865,17 @@ def on_press(key):
         test.rechar(f"{rock_type}")
     
     if key == KeyCode(char='7'):
-        global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
+        create_sparks()
+        '''global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
         if sparks_animation_thread_1 is None or not sparks_animation_thread_1.is_alive():
             sparks_animation_thread_1 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 32, 7, 0.04))
             sparks_animation_thread_1.start()
+        if sparks_animation_thread_2 is None or not sparks_animation_thread_2.is_alive():
+            sparks_animation_thread_2 = threading.Thread(target=sparks_animation_2, daemon=True, args=(spark_2, 32, 8, 0.04))
+            sparks_animation_thread_2.start()
+        if sparks_animation_thread_3 is None or not sparks_animation_thread_3.is_alive():
+            sparks_animation_thread_3 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_2, 30, 6, 0.04))
+            sparks_animation_thread_3.start()'''
 
 def on_release(key):
     global space_pressed, h_pressed
@@ -916,7 +937,7 @@ def bg_animation():
     
 #Sparks animation
 sparks = []
-from ascii_designs import spark_1
+from ascii_designs import spark_1, spark_2
 def sparks_animation_1(template=spark_1, x=32, y=7, delay=0.04):
     global sparks, rock_type, drill_type
     for char, rel_x, rel_y in template:
@@ -927,6 +948,18 @@ def sparks_animation_1(template=spark_1, x=32, y=7, delay=0.04):
         obj.remove()
     if rock_type != drill_type:
         sparks_animation_1()
+    return sparks
+
+def sparks_animation_2(template=spark_2, x=32, y=8, delay=0.04):
+    global sparks, rock_type, drill_type
+    for char, rel_x, rel_y in template:
+        obj = se.Object(char, float)
+        obj.add(map, (frame.width-x) + rel_x, (frame.height-y) + rel_y)
+        sparks.append(obj)
+        time.sleep(delay)
+        obj.remove()
+    if rock_type != drill_type:
+        sparks_animation_2()
     return sparks
 
 #Drill animation function
@@ -1071,9 +1104,7 @@ try:
                     steel += 1
                     steel_text.rechar(f'Steel: {int(steel)}')
         if rock_type != drill_type:
-            if sparks_animation_thread_1 is None or not sparks_animation_thread_1.is_alive():
-                sparks_animation_thread_1 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 32, 7, 0.04))
-                sparks_animation_thread_1.start()
+            create_sparks()
         smap.remap()
         smap.show()
         time.sleep(0.01)
