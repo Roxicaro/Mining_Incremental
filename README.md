@@ -21,7 +21,7 @@ python main.py
 ## 🛠️ Building Distributions
 ```bash
 # Windows EXE
-pyinstaller --onefile --add-data "command_list.py;." --add-data "ascii_designs.py;." main.py
+pyinstaller --onefile --add-data "ascii_designs.py;." main.py
 ```
 
 ## 📜 License

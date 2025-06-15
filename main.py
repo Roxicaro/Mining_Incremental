@@ -46,17 +46,19 @@ def save_game():
         f.write(f"{build_can_open}\n")
         f.write(f"{coal}\n")
         f.write(f"{smelter_bought}\n")
-        f.write(f"{steel}")
+        f.write(f"{steel}\n")
+        f.write(f'{drill_type}\n')
+        f.write(f'{rock_type}\n')
+        f.write(f'{steel_drill_bought}')
         save_notification()        
 
 ##### LOAD GAME FUNCTION #####
 def load_game():
-    from command_list import spacer
-    global iron, gold, rubble, coal, steel, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open, mining_cart_state, smelter_bought  
+    global iron, gold, rubble, coal, steel, drill_power, auto_miner, auto_mine_level, drill_power_price, auto_miner_price, hp, damage, store_can_open, commands, command_bottom, auto_mine_cd, descend_available, depth, mining_cart_bought, build_can_open, mining_cart_state, smelter_bought, command_list, spacer, drill_type, rock_type, steel_drill_bought  
     try:
         with open(SAVE_FILE, 'r') as f:
             lines = f.readlines()
-            if len(lines) < 21:
+            if len(lines) < 24:  # Check if the file has enough lines
                 print("Save file corrupted")
                 return False
                 
@@ -82,12 +84,16 @@ def load_game():
             coal = int(lines[18].strip())  
             smelter_bought = lines[19].strip().lower() == 'true'
             steel = int(lines[20].strip())
+            drill_type = lines[21].strip()
+            rock_type = lines[22].strip()
+            steel_drill_bought = lines[23].strip().lower() == 'true'
             
             # Update UI
             iron_text.remove()
             gold_text.remove()
             rubble_text.remove()
-            depth_text.remove()          
+            depth_text.remove() 
+            steel_text.remove()         
             if iron > 0:
                 iron_text.add(map,3,1)
                 iron_text.rechar(f'Iron: {int(iron)}')
@@ -113,6 +119,14 @@ def load_game():
                 start_descend_text.rechar("[D]escend")
                 start_descend_text_price.rechar(f"{descend_price} Rubble")
                 ui_box.set_ob(start_descend_text_price, menu_ui.width - len(start_descend_text_price.text)-1, 4) #reset UI position
+            if drill_type == 'normal':
+                regular_drill_price_text.rechar(f"ACTIVE")
+                steel_drill_price_text.rechar(f"INACTIVE")
+            if drill_type == 'steel':
+                steel_drill_price_text.rechar("ACTIVE")
+                regular_drill_price_text.rechar("INACTIVE")
+            if steel_drill_bought == True:
+                tutorial.rechar('')
             if depth > 0:
                 depth_text.rechar(f'> Depth: {depth} <')
                 depth_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 1)
@@ -124,8 +138,8 @@ def load_game():
             if auto_miner == True:
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
                 auto_miner_thread.start()
-            if drill_animation_thread.is_alive() == False:
-                drill_animation_thread.start()
+                if drill_animation_thread.is_alive() == False:
+                    drill_animation_thread.start()
             if mining_cart_bought == True:
                 if mining_cart_state == True:
                     create_mining_cart(map, frame.width-35, frame.height-4)
@@ -227,6 +241,9 @@ store_can_open = False #Opens once 1st gold is aquired
 store_open = False #Store UI check
 build_can_open = False
 build_open = False
+drill_can_open = False
+drill_open = False
+steel_drill_bought = False
 autosave = False #Game starts with auto-save feature disabled
 mining_cart_bought = False #Mining cart bought state
 mining_cart_state = False
@@ -275,6 +292,11 @@ build_ui = se.Frame(6,40,
                  corner_chars=["╭", "╮", "╰", "╯"], 
                  horizontal_chars=["─", "─"], 
                  vertical_chars=["│", "│"], state="float")
+
+drill_ui = se.Frame(6,40,
+                    corner_chars=["╭", "╮", "╰", "╯"], 
+                    horizontal_chars=["─", "─"], 
+                    vertical_chars=["│", "│"], state="float")
 
 #Exit game UI text
 exit_text = se.Text("[Esc] Quit", float)
@@ -325,15 +347,42 @@ build_ui_box.add_ob(mining_cart_price_text, build_ui.width - len(mining_cart_pri
 build_ui_box.add_ob(smelter_text, 1, 3)
 build_ui_box.add_ob(smelter_price_text, build_ui.width - len(smelter_price_text.text)-1, 3)
 
-# Create text
+#Drill UI text elements
+drill_text = se.Text("___Drill Types___", "float")
+close_drill_text = se.Text("[R]Exit", float)
+regular_drill_text = se.Text("[1]Regular drill", float)
+regular_drill_price_text = se.Text(f"", float)
+steel_drill_text = se.Text("[2]Steel drill", float)
+steel_drill_price_text = se.Text(f"10 steel", float)
+
+#Drill upgrades UI box
+drill_ui_box = se.Box(drill_ui.width, drill_ui.height)
+drill_ui_box.add_ob(drill_ui, 0,0)
+drill_ui_box.add_ob(drill_text, (int(drill_ui.width/2)) -len(drill_text.text)+8, 1)
+drill_ui_box.add_ob(close_drill_text, drill_ui.width - len(close_drill_text.text) -3, drill_ui.height-1)
+drill_ui_box.add_ob(regular_drill_text, 1, 2)
+drill_ui_box.add_ob(regular_drill_price_text, drill_ui.width - len(regular_drill_price_text.text)-1, 2)
+drill_ui_box.add_ob(steel_drill_text, 1, 3)
+drill_ui_box.add_ob(steel_drill_price_text, drill_ui.width - len(steel_drill_price_text.text)-1, 3)
+
+# Create text/
     #Tutorial text
 tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' #Tutorial text
 tutorial=se.Text(tutorial_state, float)
 tutorial.add(map, 0, center_y-1) # Add tutorial text to the map
+if steel_drill_bought:
+    tutorial.rechar('')
 
     #Command list text
 command_bottom = '' # Initialize command list
 commands = se.Text(command_bottom, float)
+
+command_list = [f'[Spacebar]: Mine',
+                f'[S] Sell',
+                f'[E] Shop',
+                f'[T] Build',
+                f'[R] Drill']
+spacer = '  ' # Spacer between commands
 
     #Resources text
 iron_text=se.Text(f'', float)
@@ -360,8 +409,8 @@ steel_text.add(map,3,5)
 temperature_text = se.Text(f'{temperature}°C', float)
 
 ############Test text#############
-test = se.Text(f"{rock_type}", float)
-test.add(map, 3, 7)
+'''test = se.Text(f"{rock_type}", float)
+test.add(map, 3, 7)'''
 
     #Depth counter text
 depth_text = se.Text(f'> Depth: {depth} <', float)
@@ -599,7 +648,7 @@ def auto_sell(): #Starts once the mining cart is bought and is active
                     iron_text.rechar(f'Iron: {int(iron)}')
                     with gold_lock:
                         gold += 1
-                        gold_text.rechar(f'Gold: {int(gold)}')
+                        update_gold_text()
             smap.remap()
             smap.show()
         else:
@@ -612,8 +661,7 @@ space_pressed = False
 h_pressed = False
 
 def on_press(key):
-    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth, temperature, temperature_text, rock_type, drill_type
-    from command_list import command_list, spacer
+    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth, temperature, temperature_text, rock_type, drill_type, command_list, spacer, drill_open, drill_can_open, drill_ui_box, drill_type, steel, steel_lock, steel_text, steel_drill_bought, smelter_bought, smelter_text, smelter_price_text, smelter_parts
     if key == Key.space and not space_pressed:
         if rock_type == drill_type:
             space_pressed = True
@@ -665,7 +713,7 @@ def on_press(key):
                 iron_text.rechar(f'Iron: {int(iron)}')
                 with gold_lock:
                     gold += 1
-                    gold_text.rechar(f'Gold: {int(gold)}')
+                    update_gold_text()
                     store_can_open = True #Allows store to open
                     if command_bottom == command_list[0] + spacer + command_list[1] + spacer: #rewrite later
                         command_bottom += command_list[2] + spacer
@@ -678,6 +726,9 @@ def on_press(key):
         if build_open and build_can_open:
             build_open = False
             build_ui_box.remove()
+        elif drill_open and drill_can_open:
+            drill_open = False
+            drill_ui_box.remove()
 
         if store_open == False:
             ui_box.add(map, ui_center_x, ui_center_y)
@@ -688,11 +739,31 @@ def on_press(key):
             store_open = False
             ui_box.remove()
     
+    #Opens and closes Drill UI
+    drill_can_open = True
+    if key == KeyCode(char='r') and drill_can_open:
+        if store_open and build_can_open:
+            store_open = False
+            ui_box.remove()
+        elif build_open and build_can_open:
+            build_open = False
+            build_ui_box.remove()
+        if drill_open == False:
+            drill_ui_box.add(map, ui_center_x, ui_center_y)
+            drill_open = True
+            drill_ui_box.set_ob(regular_drill_price_text, drill_ui.width - len(regular_drill_price_text.text)-1, 2)
+        elif drill_open == True:
+            drill_open = False
+            drill_ui_box.remove()
+    
     #Opens and closes Build UI
     if key == KeyCode(char='t'): 
         if store_open and build_can_open:
             store_open = False
             ui_box.remove()
+        elif drill_open and drill_can_open:
+            drill_open = False
+            drill_ui_box.remove()
 
         if build_open == False and build_can_open == True and store_open == False:
             build_ui_box.add(map, ui_center_x, ui_center_y)
@@ -700,6 +771,32 @@ def on_press(key):
         elif build_open == True:
             build_open = False
             build_ui_box.remove()
+    
+    #Drill type actions
+    if drill_open == True:
+        if key == KeyCode(char='1') and drill_type == 'steel':
+            drill_type = 'normal'
+            steel_drill_price_text.rechar(f"INACTIVE")
+            regular_drill_price_text.rechar(f"ACTIVE")
+            drill_ui_box.set_ob(regular_drill_price_text, drill_ui.width - len(regular_drill_price_text.text)-1, 2)
+            drill_ui_box.set_ob(steel_drill_price_text, drill_ui.width - len(steel_drill_price_text.text)-1, 3)
+            smap.remap()
+            smap.show()
+        
+        if key == KeyCode(char='2') and drill_type == 'normal':
+            if steel >= 10 and steel_drill_bought == False:
+                with steel_lock:
+                    steel -= 10
+                    steel_text.rechar(f'Steel: {int(steel)}')
+                    steel_drill_bought = True
+            if steel_drill_bought == True:
+                drill_type = 'steel'
+                steel_drill_price_text.rechar(f"ACTIVE")
+                regular_drill_price_text.rechar(f"INACTIVE")
+                drill_ui_box.set_ob(regular_drill_price_text, drill_ui.width - len(regular_drill_price_text.text)-1, 2)
+                drill_ui_box.set_ob(steel_drill_price_text, drill_ui.width - len(steel_drill_price_text.text)-1, 3)
+                smap.remap()
+                smap.show()
     
     #Build actions
     global smelter_bought, mining_cart_state, mining_cart_animation_thread
@@ -806,7 +903,7 @@ def on_press(key):
             with gold_lock:
                 gold -= drill_power_price
                 update_gold_text()
-                drill_power += 1
+                drill_power += 5
                 drill_power_price = drill_power_price * drill_power_price_increase
             better_drill.rechar(f"[B]etter drill ({drill_power})")
             better_drill_price.rechar(f"{drill_power_price} Gold")
@@ -848,7 +945,7 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    if key == KeyCode(char='w'):
+    '''if key == KeyCode(char='w'):
         with iron_lock:
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
@@ -858,15 +955,15 @@ def on_press(key):
         with rubble_lock:
             rubble += 1000
             rubble_text.rechar(f'Rubble: {rubble}')
+        
         if rock_type == 'normal':
             rock_type = 'steel'
         elif rock_type == 'steel':
-            rock_type = 'normal'
-        test.rechar(f"{rock_type}")
+            rock_type = 'normal'''
     
-    if key == KeyCode(char='7'):
+    '''if key == KeyCode(char='7'):
         create_sparks()
-        '''global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
+        global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
         if sparks_animation_thread_1 is None or not sparks_animation_thread_1.is_alive():
             sparks_animation_thread_1 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 32, 7, 0.04))
             sparks_animation_thread_1.start()
@@ -1032,8 +1129,9 @@ def explosion_animation():
     boom_box.remove()
     smap.remap()
     smap.show()
-    rock_type_chance()
-    test.rechar(f"{rock_type}")
+    if steel >= 10 or steel_drill_bought == True:
+        rock_type_chance()
+    #test.rechar(f"{rock_type}")
 
 #Game state checker function
 def game_state():
@@ -1089,7 +1187,7 @@ try:
                 rubble_text.rechar(f'Rubble: {int(rubble)}')
         
         if smelter_bought == True and temperature > 25:
-            temperature -= 5.1
+            temperature -= 1.1
             if temperature >= 1370 and temperature <= 1530:
                 temperature_text.rechar(f'{temperature:.1f}°C  ␥(Steel)')
             else:
@@ -1103,11 +1201,15 @@ try:
                 with steel_lock:
                     steel += 1
                     steel_text.rechar(f'Steel: {int(steel)}')
+                    if command_bottom == command_list[0] + spacer + command_list[1] + spacer + command_list[2] + spacer + command_list[3] + spacer:
+                        command_bottom += command_list[4] + spacer
+                        commands.rechar(command_bottom)
         if rock_type != drill_type:
             create_sparks()
         smap.remap()
         smap.show()
         time.sleep(0.01)
+
 except KeyboardInterrupt:
     save_game()
     running = False
