@@ -124,6 +124,8 @@ def load_game():
             if auto_miner == True:
                 auto_miner_thread = threading.Thread(target=iron_counter, daemon=True)
                 auto_miner_thread.start()
+            if drill_animation_thread.is_alive() == False:
+                drill_animation_thread.start()
             if mining_cart_bought == True:
                 if mining_cart_state == True:
                     create_mining_cart(map, frame.width-35, frame.height-4)
@@ -172,11 +174,29 @@ damage_lock = Lock()
 max_hp = 1000
 hp = 1000
 hp_lock = Lock()
+rock_types = ['normal', 'steel']
+rock_type = None
+
+if rock_type is None:
+    rock_type = 'normal'
+
+def rock_type_chance():
+    global rock_type
+    roll = random.randrange(0, 10)
+    if roll < 9:
+        rock_type = 'normal'
+    else:
+        rock_type = 'steel'
 
 #Drill
 drill_power = 1 #Drill power
 drill_power_price = 10
 drill_power_price_increase = 10
+drill_types = ['normal', 'steel']
+drill_type = None
+
+if drill_type is None:
+    drill_type = 'normal'
 
 #Rersources
 iron = int(0)
@@ -328,8 +348,6 @@ def update_gold_text():
     gold_text.rechar(f'Gold: {int(gold):<7}')  # Update gold text with left alignment
     gold_text.add(map, iron_text.x, iron_text.y+1)
 
-
-
 rubble_text=se.Text(f'', float)
 rubble_text.add(map,3,3)
 
@@ -341,12 +359,12 @@ steel_text.add(map,3,5)
 
 temperature_text = se.Text(f'{temperature}°C', float)
 
+############Test text#############
+test = se.Text(f"{rock_type}", float)
+test.add(map, 3, 7)
+
     #Depth counter text
 depth_text = se.Text(f'> Depth: {depth} <', float)
-
-    #TESTING TEXT FOR COLORS
-'''test_text = se.Text(f'\033[31;1;4mTESTING COLORS\033[0m', float)
-test_text.add(map, int((frame.width/2)-len(depth_text.text)+7), 2)'''
 
 # Player/Mining drill design data
 from ascii_designs import mining_drill  # Import player design data
@@ -537,7 +555,7 @@ smap.set(smap.x, smap.y)
 
 #Resource IRON updater automically
 def iron_counter():
-    global iron, damage, damage_lock, hp, hp_lock, auto_mine_cd, coal, coal_lock, coal_text, depth
+    global iron, damage, damage_lock, hp, hp_lock, auto_mine_cd, coal, coal_lock, coal_text, depth, sparks_animation_thread_1, rock_type, drill_type
     while running:
         with iron_lock:
             iron += 1
@@ -552,7 +570,10 @@ def iron_counter():
                 coal_text.rechar(f"Coal: {coal}")
         smap.remap()
         smap.show()
-        time.sleep(auto_mine_cd)  # Update every 1 second
+        if rock_type == drill_type:
+            time.sleep(auto_mine_cd)
+        else:
+            time.sleep(1)
 
 def auto_sell(): #Starts once the mining cart is bought and is active
     global iron, gold, mining_cart_bought, mining_cart_state
@@ -577,41 +598,42 @@ space_pressed = False
 h_pressed = False
 
 def on_press(key):
-    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth, temperature, temperature_text
+    global iron, gold, coal, space_pressed, drill_state, hp, hp_lock, damage, damage_lock, tutorial_state,command_bottom, store_can_open, store_open, auto_miner, drill_power, ui_center_x, ui_center_y, autosave, descend_price, build_can_open, build_open, mining_cart_bought, auto_sell_thread, depth, temperature, temperature_text, rock_type, drill_type
     from command_list import command_list, spacer
     if key == Key.space and not space_pressed:
-        space_pressed = True
-        with damage_lock:
-            damage += drill_power
-        with hp_lock:
-            hp -= drill_power
-        if iron == 0:
-            iron_text.add(map,3,1)
-            commands.add(map, 1,frame.height)
-            if command_bottom == '':
-                command_bottom += command_list[0] + spacer
-                commands.rechar(command_bottom)
-        #Event: Enough tutorial text
-        if iron >18:
-            tutorial.remove()
-            if autosave == False:
-                autosave = True        
-        with iron_lock:
-            iron += drill_power
-            iron_text.rechar(f'Iron: {int(iron)}')
-        if depth > 0 and resource_chance(100) == 0:
-            with coal_lock:
-                coal += 1
-                coal_text.rechar(f'Coal: {coal}')
-        for _ in range(2):
-            # Update the drill state to show it's working
-            drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
-            drill.rechar(drill_state)  # Update the drill object with the new state
-            tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' if tutorial_state == ' ' else ' '
-            tutorial.rechar(tutorial_state)
-            smap.remap()
-            smap.show()
-            time.sleep(0.05)
+        if rock_type == drill_type:
+            space_pressed = True
+            with damage_lock:
+                damage += drill_power
+            with hp_lock:
+                hp -= drill_power
+            if iron == 0:
+                iron_text.add(map,3,1)
+                commands.add(map, 1,frame.height)
+                if command_bottom == '':
+                    command_bottom += command_list[0] + spacer
+                    commands.rechar(command_bottom)
+            #Event: Enough tutorial text
+            if iron >18:
+                tutorial.remove()
+                if autosave == False:
+                    autosave = True        
+            with iron_lock:
+                iron += drill_power
+                iron_text.rechar(f'Iron: {int(iron)}')
+            if depth > 0 and resource_chance(100) == 0:
+                with coal_lock:
+                    coal += 1
+                    coal_text.rechar(f'Coal: {coal}')
+            for _ in range(2):
+                # Update the drill state to show it's working
+                drill_state = ' ' if drill_state == '►' else '►'  # Toggle drill state
+                drill.rechar(drill_state)  # Update the drill object with the new state
+                tutorial_state = f'{">   Press SPACEBAR to mine the boulder   <":^{frame.width+2}}' if tutorial_state == ' ' else ' '
+                tutorial.rechar(tutorial_state)
+                smap.remap()
+                smap.show()
+                time.sleep(0.05)
 
     #Check if the player has enough iron to sell for the first time (50 iron)   
     if iron >= 50:
@@ -812,7 +834,7 @@ def on_press(key):
         raise KeyboardInterrupt 
     
     #Debugging
-    '''if key == KeyCode(char='w'):
+    if key == KeyCode(char='w'):
         with iron_lock:
             iron += 100000
             iron_text.rechar(f'Iron: {int(iron)}')
@@ -821,7 +843,12 @@ def on_press(key):
             gold_text.rechar(f'Gold: {gold}')
         with rubble_lock:
             rubble += 1000
-            rubble_text.rechar(f'Rubble: {rubble}')'''
+            rubble_text.rechar(f'Rubble: {rubble}')
+        if rock_type == 'normal':
+            rock_type = 'steel'
+        elif rock_type == 'steel':
+            rock_type = 'normal'
+        test.rechar(f"{rock_type}")
     
     if key == KeyCode(char='7'):
         global sparks_animation_thread_1, sparks_animation_thread_2, sparks_animation_thread_3, sparks_animation_thread_4
@@ -891,14 +918,15 @@ def bg_animation():
 sparks = []
 from ascii_designs import spark_1
 def sparks_animation_1(template=spark_1, x=32, y=7, delay=0.04):
-    global sparks
+    global sparks, rock_type, drill_type
     for char, rel_x, rel_y in template:
         obj = se.Object(char, float)
         obj.add(map, (frame.width-x) + rel_x, (frame.height-y) + rel_y)
         sparks.append(obj)
         time.sleep(delay)
         obj.remove()
-    sparks_animation_1()
+    if rock_type != drill_type:
+        sparks_animation_1()
     return sparks
 
 #Drill animation function
@@ -959,7 +987,7 @@ def hp_animation():
 boom_box = se.Square(char='#',width=9, height=4,state="float")
 
 def explosion_animation():
-    global hp, running, rock_parts, boom_box
+    global hp, running, rock_parts, boom_box, test
     boom_box.add(map, frame.width-10, frame.height-5)
     explosion = se.Text('BOOM!', float)
     explosion.add(map, frame.width-8, frame.height-3)
@@ -971,6 +999,8 @@ def explosion_animation():
     boom_box.remove()
     smap.remap()
     smap.show()
+    rock_type_chance()
+    test.rechar(f"{rock_type}")
 
 #Game state checker function
 def game_state():
@@ -1040,9 +1070,13 @@ try:
                 with steel_lock:
                     steel += 1
                     steel_text.rechar(f'Steel: {int(steel)}')
+        if rock_type != drill_type:
+            if sparks_animation_thread_1 is None or not sparks_animation_thread_1.is_alive():
+                sparks_animation_thread_1 = threading.Thread(target=sparks_animation_1, daemon=True, args=(spark_1, 32, 7, 0.04))
+                sparks_animation_thread_1.start()
         smap.remap()
         smap.show()
-        time.sleep(0.1)
+        time.sleep(0.01)
 except KeyboardInterrupt:
     save_game()
     running = False
